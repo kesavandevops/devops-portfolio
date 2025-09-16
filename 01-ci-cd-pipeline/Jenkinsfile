@@ -11,7 +11,7 @@ pipeline {
         stage('Build Docker Image') {
             steps {
                 script {
-                    docker.build("flask-cicd-app")
+                    docker.build("flask-cicd-app", "./01-ci-cd-pipeline")
                 }
             }
         }
