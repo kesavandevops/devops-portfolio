@@ -37,15 +37,3 @@ It showcases real-world DevOps practices suitable for production environments.
    - `canary-test.sh` script measures traffic distribution between Blue & Green pods to validate rollout.
 
 ---
-
-## Repo Structure
-
-01-ci-cd-pipeline/
-├── Dockerfile # Flask app container image
-├── Jenkinsfile # CI/CD pipeline
-├── canary-test.sh # Script to test traffic distribution
-├── README.md # This top-level README
-└── k8s-manifests/
-├── deployment.yaml # Blue deployment
-├── deployment-green.yaml # Green/Canary deployment
-└── service-lb.yaml # LoadBalancer service
