@@ -22,3 +22,11 @@ spec:
         env:
         - name: APP_COLOR
           value: "green"
+        readinessProbe:
+          httpGet:
+            path: /
+            port: 5000
+          initialDelaySeconds: 5
+          periodSeconds: 5
+          failureThreshold: 3
+          successThreshold: 1
