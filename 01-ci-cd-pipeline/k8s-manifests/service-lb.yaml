@@ -5,7 +5,7 @@ metadata:
 spec:
   type: LoadBalancer
   selector:
-    app: flask-green
+    app: flask-app
   ports:
     - port: 80        # Port exposed by LoadBalancer
       targetPort: 5000 # Port your Flask app listens on in the container
