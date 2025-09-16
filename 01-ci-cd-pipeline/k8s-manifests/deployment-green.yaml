@@ -6,14 +6,14 @@ spec:
   replicas: 1
   selector:
     matchLabels:
-      app: flask-green
+      app: flask-app
   template:
     metadata:
       labels:
-        app: flask-green
+        app: flask-app
     spec:
       containers:
-      - name: flask-green
+      - name: flask-app
         image: kesavan07/flask-cicd-app:latest
         ports:
         - containerPort: 5000
