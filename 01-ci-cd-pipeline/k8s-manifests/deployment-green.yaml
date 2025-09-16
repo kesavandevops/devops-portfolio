@@ -7,10 +7,12 @@ spec:
   selector:
     matchLabels:
       app: flask-app
+      version: green
   template:
     metadata:
       labels:
         app: flask-app
+        version: green
     spec:
       containers:
       - name: flask-app
