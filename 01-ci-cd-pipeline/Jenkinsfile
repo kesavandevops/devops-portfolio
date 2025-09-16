@@ -39,7 +39,7 @@ pipeline {
 
         stage('Deploy to Kubernetes') {
             steps {
-                sh 'kubectl apply -f k8s-manifests/'
+                sh 'kubectl apply -f 01-ci-cd-pipeline/k8s-manifests/'
             }
         }
     }
