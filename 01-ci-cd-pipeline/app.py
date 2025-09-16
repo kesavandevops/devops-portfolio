@@ -1,10 +1,11 @@
+import os
 from flask import Flask
-
 app = Flask(__name__)
 
-@app.route("/")
+@app.route('/')
 def hello():
-    return "Hello from Flask app running in CI/CD Pipeline!"
+    color = os.getenv("APP_COLOR", "blue")
+    return f"Hello from {color.upper()} version of Flask App 🚀"
 
 if __name__ == "__main__":
     app.run(host="0.0.0.0", port=5000)
