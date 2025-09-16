@@ -17,3 +17,6 @@ spec:
         image: kesavan07/flask-cicd-app:latest
         ports:
         - containerPort: 5000
+        env:
+        - name: APP_COLOR
+          value: "green"
