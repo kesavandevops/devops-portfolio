@@ -13,7 +13,7 @@ spec:
         app: flask-green
     spec:
       containers:
-      - name: flask-app-green
+      - name: flask-green
         image: kesavan07/flask-cicd-app:latest
         ports:
         - containerPort: 5000
