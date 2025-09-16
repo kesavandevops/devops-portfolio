@@ -1,0 +1,19 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: flask-deployment-green
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: flask-green
+  template:
+    metadata:
+      labels:
+        app: flask-green
+    spec:
+      containers:
+      - name: flask
+        image: kesavan07/flask-cicd-app:latest
+        ports:
+        - containerPort: 5000
