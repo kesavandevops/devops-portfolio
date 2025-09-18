@@ -4,14 +4,26 @@ variable "aws_region" {
   default     = "ap-south-1"
 }
 
+variable "availability_zones" {
+  description = "List of availability zones to use"
+  type        = list(string)
+  default     = ["ap-south-1a", "ap-south-1b"]
+}
+
 variable "vpc_cidr" {
   description = "CIDR block for the VPC"
   type        = string
   default     = "10.10.0.0/16"
 }
 
-variable "public_subnet_cidr" {
-  description = "CIDR block for the public subnet"
+variable "public_subnet_cidr_a" {
+  description = "CIDR block for the first public subnet"
+  type        = string
+  default     = "10.10.0.0/24"
+}
+
+variable "public_subnet_cidr_b" {
+  description = "CIDR block for the second public subnet"
   type        = string
   default     = "10.10.1.0/24"
 }
