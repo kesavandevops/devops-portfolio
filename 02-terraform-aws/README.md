@@ -52,6 +52,10 @@ It demonstrates how to manage **compute, storage, security, and database** resou
 │── rds.tf               # RDS instance (MySQL) + subnet group + SG
 │── provider.tf          # AWS provider configuration
 │── README.md            # Project documentation
+│── docs/
+    ├── S3.md            # Explains s3.tf
+    ├── IAM.md           # Explains iam.tf
+    ├── RDS.md           # Explains rds.tf
 ```
 
 ---
