@@ -8,7 +8,7 @@ resource "aws_security_group" "rds_sg" {
     from_port       = 3306
     to_port         = 3306
     protocol        = "tcp"
-    security_groups = [aws_security_group.ec2_sg.id] # EC2 SG we defined earlier
+    security_groups = [aws_security_group.web_sg.id] # EC2 SG we defined earlier
   }
 
   egress {
