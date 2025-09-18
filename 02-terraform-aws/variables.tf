@@ -42,3 +42,9 @@ variable "tags" {
     "Owner"   = "Kesavan"
   }
 }
+
+variable "project_name" {
+  description = "Name prefix for resources"
+  type        = string
+  default     = "tf-demo"
+}
