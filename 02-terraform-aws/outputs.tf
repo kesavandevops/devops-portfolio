@@ -49,3 +49,13 @@ output "s3_user_secret_access_key" {
   value       = aws_iam_access_key.s3_user_key.secret
   sensitive   = true
 }
+
+output "rds_endpoint" {
+  description = "RDS endpoint"
+  value       = aws_db_instance.rds.endpoint
+}
+
+output "rds_db_name" {
+  description = "Database name"
+  value       = aws_db_instance.rds.db_name
+}
