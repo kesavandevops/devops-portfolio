@@ -32,3 +32,20 @@ output "s3_bucket_name" {
   description = "S3 bucket name created for demo"
   value       = aws_s3_bucket.demo_bucket.bucket
 }
+
+output "s3_user_name" {
+  description = "IAM user name with restricted S3 access"
+  value       = aws_iam_user.s3_user.name
+}
+
+output "s3_user_access_key_id" {
+  description = "Access Key ID for IAM user"
+  value       = aws_iam_access_key.s3_user_key.id
+  sensitive   = true
+}
+
+output "s3_user_secret_access_key" {
+  description = "Secret Access Key for IAM user"
+  value       = aws_iam_access_key.s3_user_key.secret
+  sensitive   = true
+}
