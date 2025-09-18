@@ -85,10 +85,7 @@ resource "aws_instance" "web" {
   associate_public_ip_address = true
 
   # Optional SSH key
-  dynamic "key_name" {
-    for_each = length(var.ssh_key_name) > 0 ? [var.ssh_key_name] : []
-    content { key_name = key_name.value }
-  }
+  key_name = var.ssh_key_name != "" ? var.ssh_key_name : null
 
   # User data to install and start nginx
   user_data = <<-EOF
