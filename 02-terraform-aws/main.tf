@@ -21,12 +21,22 @@ resource "aws_internet_gateway" "igw" {
   tags   = merge(var.tags, { Name = "tf-igw" })
 }
 
-# Public Subnet
-resource "aws_subnet" "public" {
+# Public Subnet A
+resource "aws_subnet" "public_a" {
   vpc_id                  = aws_vpc.main.id
-  cidr_block              = var.public_subnet_cidr
+  cidr_block              = var.public_subnet_cidr_a  # Define CIDR for subnet A
+  availability_zone       = var.availability_zones[0] # ap-south-1a
   map_public_ip_on_launch = true
-  tags = merge(var.tags, { Name = "tf-public-subnet" })
+  tags                    = merge(var.tags, { Name = "tf-public-subnet-a" })
+}
+
+# Public Subnet B
+resource "aws_subnet" "public_b" {
+  vpc_id                  = aws_vpc.main.id
+  cidr_block              = var.public_subnet_cidr_b  # Define CIDR for subnet B
+  availability_zone       = var.availability_zones[1] # ap-south-1b
+  map_public_ip_on_launch = true
+  tags                    = merge(var.tags, { Name = "tf-public-subnet-b" })
 }
 
 # Route Table
@@ -39,8 +49,13 @@ resource "aws_route_table" "public" {
   tags = merge(var.tags, { Name = "tf-public-rt" })
 }
 
-resource "aws_route_table_association" "public_assoc" {
-  subnet_id      = aws_subnet.public.id
+resource "aws_route_table_association" "public_assoc_a" {
+  subnet_id      = aws_subnet.public_a.id
+  route_table_id = aws_route_table.public.id
+}
+
+resource "aws_route_table_association" "public_assoc_b" {
+  subnet_id      = aws_subnet.public_b.id
   route_table_id = aws_route_table.public.id
 }
 
@@ -80,7 +95,7 @@ resource "aws_security_group" "web_sg" {
 resource "aws_instance" "web" {
   ami           = data.aws_ami.amazon_linux_2.id
   instance_type = var.instance_type
-  subnet_id     = aws_subnet.public.id
+  subnet_id     = aws_subnet.public_a.id # Or choose public_a or public_b depending on your needs
   vpc_security_group_ids = [aws_security_group.web_sg.id]
   associate_public_ip_address = true
 
