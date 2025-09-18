@@ -27,3 +27,8 @@ output "instance_public_dns" {
   description = "Public DNS of EC2 instance"
   value       = aws_instance.web.public_dns
 }
+
+output "s3_bucket_name" {
+  description = "S3 bucket name created for demo"
+  value       = aws_s3_bucket.demo_bucket.bucket
+}
