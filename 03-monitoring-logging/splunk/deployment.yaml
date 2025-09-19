@@ -26,6 +26,13 @@ spec:
             value: --accept-license
           - name: SPLUNK_PASSWORD
             value: admin12345
+        resources:
+            requests:
+              memory: "512Mi"
+              cpu: "250m"
+            limits:
+              memory: "1Gi"
+              cpu: "500m"
         volumeMounts:
           - name: splunk-storage
             mountPath: /opt/splunk/var
@@ -33,3 +40,4 @@ spec:
         - name: splunk-storage
           persistentVolumeClaim:
             claimName: splunk-pvc
+
