@@ -19,10 +19,6 @@ def metrics():
     data = generate_latest()
     return Response(data, mimetype=CONTENT_TYPE_LATEST)
 
-@app.route('/debug-routes')
-def debug_routes():
-    return str(app.url_map)
-
 if __name__ == "__main__":
     app.run(host="0.0.0.0", port=5000)
 
