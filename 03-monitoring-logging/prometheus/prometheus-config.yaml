@@ -2,6 +2,7 @@ apiVersion: v1
 kind: ConfigMap
 metadata:
   name: prometheus-config
+  namespace: default
   labels:
     app: prometheus
 data:
@@ -18,7 +19,19 @@ data:
           - action: labelmap
             regex: __meta_kubernetes_node_label_(.+)
 
-      # Scrape all pods annotated with prometheus.io/scrape="true"
+      # Scrape node-exporter (DaemonSet)
+      - job_name: 'node-exporter'
+        kubernetes_sd_configs:
+          - role: endpoints
+        relabel_configs:
+          - source_labels: [__meta_kubernetes_service_label_app]
+            regex: node-exporter
+            action: keep
+          - source_labels: [__meta_kubernetes_endpoint_port_name]
+            regex: metrics
+            action: keep
+
+      # Scrape pods with prometheus.io annotations
       - job_name: 'kubernetes-pods'
         kubernetes_sd_configs:
           - role: pod
@@ -30,19 +43,13 @@ data:
             action: replace
             target_label: __metrics_path__
             regex: (.+)
-          - source_labels: [__address__, __meta_kubernetes_pod_annotation_prometheus_io_port]
+          - source_labels: [__meta_kubernetes_pod_annotation_prometheus_io_port]
             action: replace
-            regex: ([^:]+)(?::\d+)?;(\d+)
-            replacement: $1:$2
             target_label: __address__
-          - action: labelmap
-            regex: __meta_kubernetes_pod_label_(.+)
+            regex: (.+)
+            replacement: $1
 
-      # Scrape node-exporter
-      - job_name: 'node-exporter'
-        kubernetes_sd_configs:
-          - role: pod
-        relabel_configs:
-          - source_labels: [__meta_kubernetes_pod_label_app]
-            action: keep
-            regex: node-exporter
+      # Scrape Flask app via service (keep this in case annotations don’t work)
+      - job_name: 'flask-app'
+        static_configs:
+          - targets: ['flask-service.default.svc.cluster.local:80']
