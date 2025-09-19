@@ -43,19 +43,24 @@ It demonstrates how to manage **compute, storage, security, and database** resou
 
 ```
 02-terraform-aws/
-│── main.tf              # VPC, Subnets, EC2, Security Groups
-│── variables.tf         # Input variables
-│── terraform.tfvars     # Variable values (user-provided)
-│── outputs.tf           # Useful outputs
-│── s3.tf                # S3 bucket config
-│── iam.tf               # IAM user + policy for S3 access
-│── rds.tf               # RDS instance (MySQL) + subnet group + SG
-│── provider.tf          # AWS provider configuration
-│── README.md            # Project documentation
+│── main.tf                               # VPC, Subnets, EC2, Security Groups
+│── variables.tf                          # Input variables
+│── terraform.tfvars                      # Variable values (user-provided)
+│── outputs.tf                            # Useful outputs
+│── s3.tf                                 # S3 bucket config
+│── iam.tf                                # IAM user + policy for S3 access
+│── rds.tf                                # RDS instance (MySQL) + subnet group + SG
+│── provider.tf                           # AWS provider configuration
+│── README.md                             # Project documentation
 │── docs/
-    ├── S3.md            # Explains s3.tf
-    ├── IAM.md           # Explains iam.tf
-    ├── RDS.md           # Explains rds.tf
+│   ├── S3.md                             # Explains s3.tf
+│   ├── IAM.md                            # Explains iam.tf
+│   ├── RDS.md                            # Explains rds.tf
+├── diagrams/                             
+│   ├── terraform_aws_workflow.png        # Workflow diagram
+│   ├── terraform_aws_architecture.png    # Architecture diagram 
+│   └── README.md                         # Diagrams documentation
+└── README.md                             # Project documentation
 ```
 
 ---
@@ -186,6 +191,22 @@ Destroy all resources to avoid charges:
 ```bash
 terraform destroy -var-file="terraform.tfvars"
 ```
+
+---
+
+## 📊 Project Diagrams
+
+To better understand how the infrastructure is provisioned and connected, here are the key diagrams:
+
+### Workflow Diagram
+Shows how Terraform provisions AWS resources and how they interact.
+
+![Terraform AWS Workflow](diagrams/terraform_aws_workflow.png)
+
+### Architecture Diagram
+High-level AWS architecture including VPC, subnets, EC2, RDS, S3, and IAM role.
+
+![Terraform AWS Architecture](diagrams/terraform_aws_architecture.png)
 
 ---
 
