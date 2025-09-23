@@ -33,5 +33,3 @@ spec:
         - name: splunk-storage
           persistentVolumeClaim:
             claimName: splunk-pvc
-
-
