@@ -42,7 +42,7 @@ data:
           - action: labelmap
             regex: __meta_kubernetes_pod_label_(.+)
 
-      # Scrape node-exporter
+      # Scrape node-exporter pods
       - job_name: 'node-exporter'
         kubernetes_sd_configs:
           - role: pod
@@ -51,7 +51,21 @@ data:
             action: keep
             regex: node-exporter
 
+      # Scrape kube-state-metrics
+      - job_name: 'kube-state-metrics'
+        kubernetes_sd_configs:
+          - role: service
+        relabel_configs:
+          - source_labels: [__meta_kubernetes_service_label_app]
+            action: keep
+            regex: kube-state-metrics
+          - source_labels: [__address__]
+            target_label: __address__
+            regex: (.+):\d+
+            replacement: $1:8080  # kube-state-metrics default port
+          
       # Scrape Flask app via service (keep this in case annotations don’t work)
       - job_name: 'flask-app'
         static_configs:
           - targets: ['flask-service.default.svc.cluster.local:80']
+          
