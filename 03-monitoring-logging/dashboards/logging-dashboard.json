@@ -1,0 +1,4 @@
+{
+  "title": "Splunk Logging Dashboard",
+  "description": "This dashboard will display Kubernetes and Flask app logs ingested via Splunk Connect for Kubernetes."
+}
