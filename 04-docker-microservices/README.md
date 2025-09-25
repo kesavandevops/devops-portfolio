@@ -116,7 +116,7 @@ Nginx will automatically distribute requests across replicas.
 
 ---
 
-## 🔁 Request & Task Processing Flow with NGINX, Flask, Redis, and Worker
+### 📦 **Request & Task Processing Flow with NGINX, Flask, Redis, and Worker**
 
 ```mermaid
 flowchart LR
@@ -131,6 +131,32 @@ flowchart LR
 
 ---
 
+### 🔄 **Step-by-Step Sequence Diagram**
+
+```mermaid
+sequenceDiagram
+    participant C as Client
+    participant N as Nginx
+    participant F as Flask App
+    participant R as Redis Queue
+    participant W as Worker
+
+    C->>N: HTTP Request (e.g., /api/task)
+    N->>F: Forward Request (load-balanced)
+    F->>R: Push Task to Redis (e.g., LPUSH)
+    R-->>F: Acknowledge (OK)
+    Note over F, R: Flask responds to client immediately
+    F-->>N: HTTP 200 OK
+    N-->>C: HTTP 200 OK
+
+    W->>R: Wait for task (BRPOP)
+    R-->>W: Deliver Task
+    W->>W: Process Task
+    W->>Logs: Write logs or result
+```
+
+---
+
 ### 🔎 Explanation of Flow
 
 1. **Client** → Sends requests to the single exposed endpoint (Nginx).
@@ -138,6 +164,3 @@ flowchart LR
 3. **Flask App** → Accepts requests, pushes tasks into **Redis**.
 4. **Redis Queue** → Stores pending tasks until a worker consumes them.
 5. **Worker Service** → Pulls tasks using `BRPOP`, processes them, and logs the output.
-
----
-
