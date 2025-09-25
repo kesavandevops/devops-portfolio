@@ -5,17 +5,37 @@ metadata:
 data:
   nginx.conf: |
     events { }
+
     http {
-      upstream flask_upstream {
-        server flask-service:5000;
-      }
-      server {
-        listen 80;
-        location / {
-          proxy_pass http://flask_upstream;
-          proxy_set_header Host $host;
-          proxy_set_header X-Real-IP $remote_addr;
-          proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        upstream flask_app {
+            server flask-service:5000;
         }
-      }
+
+        server {
+            listen 80;
+
+            # Default landing page
+            location = / {
+                default_type text/plain;
+                return 200 'Nginx Reverse Proxy is running!';
+            }
+
+            # Proxy Flask API routes
+            location /api/ {
+                proxy_pass http://flask_app/;
+                proxy_set_header Host $host;
+                proxy_set_header X-Real-IP $remote_addr;
+                proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+                proxy_set_header X-Forwarded-Proto $scheme;
+            }
+
+            # Proxy Flask metrics
+            location /metrics {
+                proxy_pass http://flask_app/metrics;
+                proxy_set_header Host $host;
+                proxy_set_header X-Real-IP $remote_addr;
+                proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+                proxy_set_header X-Forwarded-Proto $scheme;
+            }
+        }
     }
