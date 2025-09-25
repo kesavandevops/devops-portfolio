@@ -20,6 +20,12 @@ def add_task(task):
     r.rpush("tasks", task)  # push task to Redis list
     return jsonify({"status": "queued", "task": task}), 201
 
+@app.route('/add/<task>', methods=['GET'])
+def test_add_task(task):
+    return jsonify({
+        "message": f"Send a POST to actually queue the task {task}."
+    }), 200
+
 @app.route("/metrics")
 def metrics():
     """Expose simple app metrics (demo)"""
