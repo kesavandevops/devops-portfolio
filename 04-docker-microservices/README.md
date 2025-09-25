@@ -116,6 +116,8 @@ Nginx will automatically distribute requests across replicas.
 
 ---
 
+## 🔁 Request & Task Processing Flow with NGINX, Flask, Redis, and Worker
+
 ```mermaid
 flowchart LR
     Client((Client)) -->|HTTP Requests| Nginx[Nginx Reverse Proxy]
