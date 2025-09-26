@@ -1,0 +1,69 @@
+pipeline {
+    agent any
+
+    environment {
+        AWS_DEFAULT_REGION = "ap-south-1"
+        TF_WORKDIR = "05-serverless-aws/terraform"
+    }
+
+    stages {
+        stage('Checkout') {
+            steps {
+                checkout scm
+            }
+        }
+
+        stage('Build Lambda Package') {
+            steps {
+                dir('05-serverless-aws') {
+                    sh 'chmod +x build.sh'
+                    sh './build.sh'
+                }
+            }
+        }
+
+        stage('Terraform Init') {
+            steps {
+                dir("${TF_WORKDIR}") {
+                    withAWS(credentials: 'aws-credentials-id', region: "${AWS_DEFAULT_REGION}") {
+                        sh 'terraform init -input=false'
+                    }
+                }
+            }
+        }
+
+        stage('Terraform Plan') {
+            steps {
+                dir("${TF_WORKDIR}") {
+                    withAWS(credentials: 'aws-credentials-id', region: "${AWS_DEFAULT_REGION}") {
+                        sh 'terraform plan -var-file="terraform.tfvars" -out=tfplan'
+                    }
+                }
+            }
+        }
+
+        stage('Terraform Apply') {
+            steps {
+                dir("${TF_WORKDIR}") {
+                    withAWS(credentials: 'aws-credentials-id', region: "${AWS_DEFAULT_REGION}") {
+                        sh 'terraform apply -input=false tfplan'
+                    }
+                }
+            }
+        }
+    }
+
+    post {
+        always {
+            dir("${TF_WORKDIR}") {
+                sh 'terraform output'
+            }
+        }
+        failure {
+            echo "❌ Build or deploy failed."
+        }
+        success {
+            echo "✅ Deployment successful."
+        }
+    }
+}
