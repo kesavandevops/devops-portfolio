@@ -4,6 +4,7 @@ pipeline {
     environment {
         AWS_DEFAULT_REGION = "ap-south-1"
         TF_WORKDIR = "05-serverless-aws/terraform"
+        AWS_EC2_METADATA_DISABLED = 'true'
     }
 
     stages {
@@ -47,7 +48,7 @@ pipeline {
                           TF_PID=$!
                         
                           # Timeout loop (POSIX-compliant)
-                          TIMEOUT=80
+                          TIMEOUT=50
                           ELAPSED=0
                         
                           while kill -0 "$TF_PID" 2>/dev/null; do
@@ -99,6 +100,7 @@ pipeline {
         }
     }
 }
+
 
 
 
