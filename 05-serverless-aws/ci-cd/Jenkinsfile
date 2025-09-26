@@ -39,8 +39,29 @@ pipeline {
                         sh '''
                           export TF_LOG=DEBUG
                           export TF_LOG_PATH=terraform_debug.log
-                          timeout 80s terraform plan -var-file="terraform.tfvars" -out=tfplan
-                          cat terraform_debug.log
+                        
+                          # Run terraform in background
+                          ( terraform plan -var-file="terraform.tfvars" -out=tfplan ) &
+                        
+                          TF_PID=$!
+                        
+                          # Wait with timeout
+                          SECONDS=0
+                          TIMEOUT=50
+                        
+                          while kill -0 $TF_PID 2>/dev/null; do
+                            if [ $SECONDS -ge $TIMEOUT ]; then
+                              echo "⏱️ Timeout reached, killing Terraform (PID $TF_PID)"
+                              kill -INT $TF_PID  # Graceful interrupt first
+                              sleep 5
+                              kill -9 $TF_PID || true  # Force kill if still alive
+                              break
+                            fi
+                            sleep 1
+                          done
+                        
+                          echo "📄 Terraform debug log:"
+                          cat terraform_debug.log || echo "No log found"
                         '''
                     }
                 }
@@ -72,4 +93,5 @@ pipeline {
         }
     }
 }
+
 
