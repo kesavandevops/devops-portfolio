@@ -40,28 +40,34 @@ pipeline {
                           export TF_LOG=DEBUG
                           export TF_LOG_PATH=terraform_debug.log
                         
-                          # Run terraform in background
-                          ( terraform plan -var-file="terraform.tfvars" -out=tfplan ) &
+                          echo "⏳ Starting Terraform plan with timeout..."
                         
+                          # Start terraform in background and record PID
+                          terraform plan -var-file="terraform.tfvars" -out=tfplan &
                           TF_PID=$!
                         
-                          # Wait with timeout
-                          SECONDS=0
-                          TIMEOUT=50
+                          # Timeout loop (POSIX-compliant)
+                          TIMEOUT=80
+                          ELAPSED=0
                         
-                          while kill -0 $TF_PID 2>/dev/null; do
-                            if [ $SECONDS -ge $TIMEOUT ]; then
-                              echo "⏱️ Timeout reached, killing Terraform (PID $TF_PID)"
-                              kill -INT $TF_PID  # Graceful interrupt first
+                          while kill -0 "$TF_PID" 2>/dev/null; do
+                            if [ "$ELAPSED" -ge "$TIMEOUT" ]; then
+                              echo "⏱️ Timeout of ${TIMEOUT}s reached. Sending SIGINT to Terraform (PID: $TF_PID)..."
+                              kill -INT "$TF_PID" 2>/dev/null || true
                               sleep 5
-                              kill -9 $TF_PID || true  # Force kill if still alive
+                              if kill -0 "$TF_PID" 2>/dev/null; then
+                                echo "⚠️ Terraform did not exit after SIGINT. Sending SIGKILL..."
+                                kill -KILL "$TF_PID" 2>/dev/null || true
+                              fi
                               break
                             fi
                             sleep 1
+                            ELAPSED=$((ELAPSED + 1))
                           done
                         
-                          echo "📄 Terraform debug log:"
-                          cat terraform_debug.log || echo "No log found"
+                          echo "✅ Terraform process exited or was killed."
+                          echo "📄 Contents of terraform_debug.log:"
+                          cat terraform_debug.log || echo "⚠️ Log file not found"
                         '''
                     }
                 }
@@ -93,5 +99,6 @@ pipeline {
         }
     }
 }
+
 
 
