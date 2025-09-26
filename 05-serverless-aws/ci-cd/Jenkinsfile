@@ -22,20 +22,6 @@ pipeline {
             }
         }
 
-        stage('Verify Lambda Zip File') {
-            steps {
-                dir("${TF_WORKDIR}") {
-                    sh '''
-                      echo "Current directory: $(pwd)"
-                      echo "Verifying Lambda zip file..."
-                      ls -lh ../lambda_package.zip || echo "File not found"
-                      file ../lambda_package.zip || echo "Invalid zip?"
-                      unzip -l ../lambda_package.zip || echo "Not a valid zip"
-                    '''
-                }
-            }
-        }
-
         stage('Terraform Init') {
             steps {
                 dir("${TF_WORKDIR}") {
@@ -50,7 +36,12 @@ pipeline {
             steps {
                 dir("${TF_WORKDIR}") {
                     withAWS(credentials: 'aws-credentials-id', region: "${AWS_DEFAULT_REGION}") {
-                        sh 'TF_LOG=DEBUG timeout 80s terraform plan -var-file="terraform.tfvars" -out=tfplan'
+                        sh '''
+                          export TF_LOG=DEBUG
+                          export TF_LOG_PATH=terraform_debug.log
+                          timeout 80s terraform plan -var-file="terraform.tfvars" -out=tfplan
+                          cat terraform_debug.log
+                        '''
                     }
                 }
             }
@@ -81,3 +72,4 @@ pipeline {
         }
     }
 }
+
