@@ -22,6 +22,20 @@ pipeline {
             }
         }
 
+        stage('Verify Lambda Zip File') {
+            steps {
+                dir("${TF_WORKDIR}") {
+                    sh '''
+                      echo "Current directory: $(pwd)"
+                      echo "Verifying Lambda zip file..."
+                      ls -lh ../lambda_package.zip || echo "File not found"
+                      file ../lambda_package.zip || echo "Invalid zip?"
+                      unzip -l ../lambda_package.zip || echo "Not a valid zip"
+                    '''
+                }
+            }
+        }
+
         stage('Terraform Init') {
             steps {
                 dir("${TF_WORKDIR}") {
@@ -70,5 +84,6 @@ pipeline {
         }
     }
 }
+
 
 
