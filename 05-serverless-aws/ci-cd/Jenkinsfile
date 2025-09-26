@@ -47,13 +47,10 @@ pipeline {
         }
 
         stage('Terraform Plan') {
-            options {
-                timeout(time: 2, unit: 'MINUTES')
-            }
             steps {
                 dir("${TF_WORKDIR}") {
                     withAWS(credentials: 'aws-credentials-id', region: "${AWS_DEFAULT_REGION}") {
-                        sh 'TF_LOG=DEBUG terraform plan -var-file="terraform.tfvars" -out=tfplan'
+                        sh 'TF_LOG=DEBUG timeout 80s terraform plan -var-file="terraform.tfvars" -out=tfplan'
                     }
                 }
             }
@@ -84,6 +81,7 @@ pipeline {
         }
     }
 }
+
 
 
 
