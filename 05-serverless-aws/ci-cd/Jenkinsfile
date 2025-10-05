@@ -7,21 +7,21 @@ pipeline {
     BUILD_DIR = "05-serverless-aws"
 
     // Make Terraform fully non-interactive in CI
-    TF_INPUT = '0'                           // prevents prompts [TF_INPUT] [web:31]
-    AWS_EC2_METADATA_DISABLED = 'true'       // avoid IMDS probing on non-EC2 agents [web:51]
+    TF_INPUT = '0'
+    AWS_EC2_METADATA_DISABLED = 'true'
 
     // Provider plugin cache to avoid repeated downloads and init stalls
-    TF_PLUGIN_CACHE_DIR = "${WORKSPACE}/.terraform.d/plugin-cache" [web:40][web:31]
+    TF_PLUGIN_CACHE_DIR = "${WORKSPACE}/.terraform.d/plugin-cache"
 
-    // Default CLI args per subcommand (picked up automatically by Terraform)
-    TF_CLI_ARGS_init  = "-input=false -no-color" [web:31][web:99]
-    TF_CLI_ARGS_plan  = "-input=false -no-color -lock-timeout=5m" [web:31][web:98]
-    TF_CLI_ARGS_apply = "-input=false -no-color -lock-timeout=5m" [web:31][web:100]
+    // Default CLI args picked up automatically by Terraform
+    TF_CLI_ARGS_init  = "-input=false -no-color"
+    TF_CLI_ARGS_plan  = "-input=false -no-color -lock-timeout=5m"
+    TF_CLI_ARGS_apply = "-input=false -no-color -lock-timeout=5m"
   }
 
   options {
-    // Use Jenkins' native timeout wrapper so the step is aborted from the controller
-    timeout(time: 10, unit: 'MINUTES') [web:60]
+    timeout(time: 10, unit: 'MINUTES')
+    timestamps()
   }
 
   stages {
@@ -33,7 +33,7 @@ pipeline {
 
     stage('Build Lambda Package') {
       steps {
-        dir("${BUILD_DIR}") {
+        dir("${TF_WORKDIR}/..") {
           sh '''
             set -euo pipefail
             echo "Building Lambda package..."
@@ -60,12 +60,12 @@ pipeline {
     stage('Terraform Init') {
       steps {
         dir("${TF_WORKDIR}") {
-          withAWS(credentials: 'aws-credentials-id', region: "${AWS_DEFAULT_REGION}") { // AWS Steps plugin
+          withAWS(credentials: 'aws-credentials-id', region: "${AWS_DEFAULT_REGION}") {
             sh '''
               set -euo pipefail
               mkdir -p "$TF_PLUGIN_CACHE_DIR"
               terraform version
-              terraform init        # picks up TF_CLI_ARGS_init
+              terraform init
             '''
           }
         }
@@ -73,28 +73,27 @@ pipeline {
     }
 
     stage('Terraform Plan') {
+      options { timeout(time: 3, unit: 'MINUTES') }
       steps {
         dir("${TF_WORKDIR}") {
           withAWS(credentials: 'aws-credentials-id', region: "${AWS_DEFAULT_REGION}") {
-            timeout(time: 3, unit: 'MINUTES') {   // stage-scoped timeout
-              sh '''
-                set -euo pipefail
-                echo "Verifying AWS credentials..."
-                aws sts get-caller-identity --no-cli-pager
+            sh '''
+              set -euo pipefail
+              echo "Verifying AWS credentials..."
+              aws sts get-caller-identity --no-cli-pager
 
-                echo "Running Terraform Plan..."
-                export TF_LOG=INFO
-                export TF_LOG_PATH=terraform-plan.log
-                terraform plan -var-file="terraform.tfvars" -out=tfplan   # picks up TF_CLI_ARGS_plan
-              '''
-            }
+              echo "Running Terraform Plan..."
+              export TF_LOG=INFO
+              export TF_LOG_PATH=terraform-plan.log
+              terraform plan -var-file="terraform.tfvars" -out=tfplan
+            '''
           }
         }
       }
     }
 
     stage('Terraform Apply') {
-      when { expression { fileExists("${TF_WORKDIR}/tfplan") } }
+      when { expression { fileExists("${env.TF_WORKDIR}/tfplan") } }
       steps {
         dir("${TF_WORKDIR}") {
           withAWS(credentials: 'aws-credentials-id', region: "${AWS_DEFAULT_REGION}") {
@@ -102,7 +101,7 @@ pipeline {
               set -euo pipefail
               export TF_LOG=INFO
               export TF_LOG_PATH=terraform-apply.log
-              terraform apply tfplan     # applying a saved plan does not prompt for approval
+              terraform apply tfplan
             '''
           }
         }
