@@ -46,5 +46,5 @@ resource "aws_lambda_permission" "allow_apigw" {
   function_name = aws_lambda_function.api.function_name
   principal     = "apigateway.amazonaws.com"
   # source_arn: allow this API to invoke the function
-  source_arn    = "${aws_apigatewayv2_api.http_api.execution_arn}/*/*"
+  source_arn = "${aws_apigatewayv2_api.http_api.execution_arn}/*/*"
 }
