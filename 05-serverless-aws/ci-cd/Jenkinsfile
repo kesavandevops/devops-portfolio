@@ -6,12 +6,21 @@ pipeline {
     TF_WORKDIR = "05-serverless-aws/terraform"
     BUILD_DIR = "05-serverless-aws"
 
-    // Make Terraform fully non-interactive in CI
+    // Non-interactive Terraform in CI
     TF_INPUT = '0'
+
+    // Disable IMDS probing on non-EC2 agents
     AWS_EC2_METADATA_DISABLED = 'true'
 
-    // Plugin cache to speed up provider loading
+    // Prefer regional STS to reduce latency during provider init
+    AWS_STS_REGIONAL_ENDPOINTS = 'regional'
+
+    // Provider plugin cache for faster/reliable init
     TF_PLUGIN_CACHE_DIR = "${WORKSPACE}/.terraform.d/plugin-cache"
+
+    // Pass variables to provider.tf
+    TF_VAR_ci_mode = 'true'
+    TF_VAR_aws_region = 'ap-south-1'
 
     // Default CLI args
     TF_CLI_ARGS_init  = "-input=false -no-color"
@@ -57,7 +66,7 @@ ls -l ../lambda_package.zip
       }
     }
 
-    stage('Terraform Init') {
+    stage('Terraform Init (upgrade)') {
       steps {
         dir("${TF_WORKDIR}") {
           withAWS(credentials: 'aws-credentials-id', region: "${AWS_DEFAULT_REGION}") {
@@ -65,15 +74,15 @@ ls -l ../lambda_package.zip
 set -euo pipefail
 mkdir -p "$TF_PLUGIN_CACHE_DIR"
 terraform version
-terraform init
+# Upgrade provider/plugins to pick up fixes and match provider.tf constraints
+terraform init -upgrade -input=false -no-color
 '''
           }
         }
       }
     }
 
-    // Diagnostic plan to isolate refresh/lock/provider stalls in CI
-    stage('Terraform Plan (diag)') {
+    stage('Terraform Plan') {
       options { timeout(time: 3, unit: 'MINUTES') }
       steps {
         dir("${TF_WORKDIR}") {
@@ -83,11 +92,10 @@ set -euo pipefail
 echo "Verifying AWS credentials..."
 aws sts get-caller-identity --no-cli-pager
 
-echo "Running diagnostic Terraform Plan (no refresh, no lock)..."
-export TF_LOG=TRACE
+echo "Running Terraform Plan..."
+export TF_LOG=INFO
 export TF_LOG_PATH=terraform-plan.log
-terraform plan -input=false -no-color -refresh=false -lock=false -parallelism=1 \
-  -var-file="terraform.tfvars" -out=tfplan
+terraform plan -var-file="terraform.tfvars" -out=tfplan
 '''
           }
         }
@@ -105,7 +113,7 @@ terraform plan -input=false -no-color -refresh=false -lock=false -parallelism=1 
 set -euo pipefail
 export TF_LOG=INFO
 export TF_LOG_PATH=terraform-apply.log
-terraform apply tfplan
+terraform apply -input=false tfplan
 '''
           }
         }
