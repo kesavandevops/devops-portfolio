@@ -10,10 +10,10 @@ pipeline {
     TF_INPUT = '0'
     AWS_EC2_METADATA_DISABLED = 'true'
 
-    // Provider plugin cache to avoid repeated downloads and init stalls
+    // Plugin cache to speed up provider loading
     TF_PLUGIN_CACHE_DIR = "${WORKSPACE}/.terraform.d/plugin-cache"
 
-    // Default CLI args picked up automatically by Terraform
+    // Default CLI args
     TF_CLI_ARGS_init  = "-input=false -no-color"
     TF_CLI_ARGS_plan  = "-input=false -no-color -lock-timeout=5m"
     TF_CLI_ARGS_apply = "-input=false -no-color -lock-timeout=5m"
@@ -35,103 +35,6 @@ pipeline {
       steps {
         dir("${TF_WORKDIR}/..") {
           sh '''
-            bash <<'EOF'
-              set -euo pipefail
-              echo "Building Lambda package..."
-              chmod +x build.sh
-              ./build.sh
-              test -f lambda_package.zip || { echo "Lambda package not created!"; exit 1; }
-            EOF
-          '''
-        }
-      }
-    }
-
-    stage('Verify Build Paths') {
-      steps {
-        dir("${TF_WORKDIR}") {
-          sh '''
-            bash <<'EOF'
-              set -euo pipefail
-              echo "Verifying paths from Terraform perspective..."
-              ls -l ../lambda_package.zip
-            EOF
-          '''
-        }
-      }
-    }
-
-    stage('Terraform Init') {
-      steps {
-        dir("${TF_WORKDIR}") {
-          withAWS(credentials: 'aws-credentials-id', region: "${AWS_DEFAULT_REGION}") {
-            sh '''
-              bash <<'EOF'
-                set -euo pipefail
-                mkdir -p "$TF_PLUGIN_CACHE_DIR"
-                terraform version
-                terraform init
-              EOF
-            '''
-          }
-        }
-      }
-    }
-
-    stage('Terraform Plan') {
-      options { timeout(time: 3, unit: 'MINUTES') }
-      steps {
-        dir("${TF_WORKDIR}") {
-          withAWS(credentials: 'aws-credentials-id', region: "${AWS_DEFAULT_REGION}") {
-            sh '''
-              bash <<'EOF'
-                set -euo pipefail
-                echo "Verifying AWS credentials..."
-                aws sts get-caller-identity --no-cli-pager
-  
-                echo "Running Terraform Plan..."
-                export TF_LOG=INFO
-                export TF_LOG_PATH=terraform-plan.log
-                terraform plan -var-file="terraform.tfvars" -out=tfplan
-              EOF
-            '''
-          }
-        }
-      }
-    }
-
-    stage('Terraform Apply') {
-      when { expression { fileExists("${env.TF_WORKDIR}/tfplan") } }
-      steps {
-        dir("${TF_WORKDIR}") {
-          withAWS(credentials: 'aws-credentials-id', region: "${AWS_DEFAULT_REGION}") {
-            sh '''
-              bash <<'EOF'
-                set -euo pipefail
-                export TF_LOG=INFO
-                export TF_LOG_PATH=terraform-apply.log
-                terraform apply tfplan
-              EOF
-            '''
-          }
-        }
-      }
-    }
-  }
-
-  post {
-    always {
-      dir("${TF_WORKDIR}") {
-        sh 'terraform output || true'
-        archiveArtifacts artifacts: 'terraform-*.log, tfplan', allowEmptyArchive: true
-      }
-    }
-    failure {
-      echo "Build or deploy failed."
-    }
-    success {
-      echo "Deployment successful."
-    }
-  }
-}
-
+bash <<EOF
+set -euo pipefail
+echo "🏗️ Building Lambda packa
