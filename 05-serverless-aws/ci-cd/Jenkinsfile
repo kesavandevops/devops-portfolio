@@ -78,7 +78,7 @@ EOF
       }
     }
 
-    stage('Terraform Plan') {
+    stage('Terraform Plan (diag)') {
       options { timeout(time: 3, unit: 'MINUTES') }
       steps {
         dir("${TF_WORKDIR}") {
@@ -86,19 +86,21 @@ EOF
             sh '''
 bash <<EOF
 set -euo pipefail
-echo "🔐 Verifying AWS credentials..."
+echo "Verifying AWS credentials..."
 aws sts get-caller-identity --no-cli-pager
 
-echo "📡 Running Terraform Plan..."
-export TF_LOG=INFO
+echo "Running diagnostic Terraform Plan (no refresh)..."
+export TF_LOG=TRACE
 export TF_LOG_PATH=terraform-plan.log
-terraform plan -var-file="terraform.tfvars" -out=tfplan
+terraform plan -input=false -no-color -refresh=false -parallelism=1 \
+-var-file="terraform.tfvars" -out=tfplan
 EOF
             '''
           }
         }
       }
     }
+
 
     stage('Terraform Apply') {
       when {
@@ -143,3 +145,4 @@ EOF
     }
   }
 }
+
