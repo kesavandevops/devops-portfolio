@@ -8,11 +8,6 @@ terraform {
   }
 }
 
-# Provide via tfvars or TF_VAR_aws_region
-variable "aws_region" {
-  type = string
-}
-
 # Toggle CI-safe provider configuration (true in Jenkins, false locally)
 variable "ci_mode" {
   description = "Enable CI-safe provider config by skipping slow validations"
@@ -31,3 +26,4 @@ provider "aws" {
   # Prefer regional STS endpoints to avoid global endpoint latency in CI
   sts_regional_endpoints = "regional"
 }
+
