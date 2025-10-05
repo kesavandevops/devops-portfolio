@@ -34,13 +34,15 @@ pipeline {
     stage('Build Lambda Package') {
       steps {
         dir("${TF_WORKDIR}/..") {
-          sh(script: '''
-            set -euo pipefail
-            echo "Building Lambda package..."
-            chmod +x build.sh
-            ./build.sh
-            test -f lambda_package.zip || { echo "Lambda package not created!"; exit 1; }
-          ''', shell: '/bin/bash')
+          sh '''
+            bash <<'EOF'
+              set -euo pipefail
+              echo "Building Lambda package..."
+              chmod +x build.sh
+              ./build.sh
+              test -f lambda_package.zip || { echo "Lambda package not created!"; exit 1; }
+            EOF
+          '''
         }
       }
     }
@@ -48,11 +50,13 @@ pipeline {
     stage('Verify Build Paths') {
       steps {
         dir("${TF_WORKDIR}") {
-          sh(script: '''
-            set -euo pipefail
-            echo "Verifying paths from Terraform perspective..."
-            ls -l ../lambda_package.zip
-          ''', shell: '/bin/bash')
+          sh '''
+            bash <<'EOF'
+              set -euo pipefail
+              echo "Verifying paths from Terraform perspective..."
+              ls -l ../lambda_package.zip
+            EOF
+          '''
         }
       }
     }
@@ -61,12 +65,14 @@ pipeline {
       steps {
         dir("${TF_WORKDIR}") {
           withAWS(credentials: 'aws-credentials-id', region: "${AWS_DEFAULT_REGION}") {
-            sh(script: '''
-              set -euo pipefail
-              mkdir -p "$TF_PLUGIN_CACHE_DIR"
-              terraform version
-              terraform init
-            ''', shell: '/bin/bash')
+            sh '''
+              bash <<'EOF'
+                set -euo pipefail
+                mkdir -p "$TF_PLUGIN_CACHE_DIR"
+                terraform version
+                terraform init
+              EOF
+            '''
           }
         }
       }
@@ -77,16 +83,18 @@ pipeline {
       steps {
         dir("${TF_WORKDIR}") {
           withAWS(credentials: 'aws-credentials-id', region: "${AWS_DEFAULT_REGION}") {
-            sh(script: '''
-              set -euo pipefail
-              echo "Verifying AWS credentials..."
-              aws sts get-caller-identity --no-cli-pager
-
-              echo "Running Terraform Plan..."
-              export TF_LOG=INFO
-              export TF_LOG_PATH=terraform-plan.log
-              terraform plan -var-file="terraform.tfvars" -out=tfplan
-            ''', shell: '/bin/bash')
+            sh '''
+              bash <<'EOF'
+                set -euo pipefail
+                echo "Verifying AWS credentials..."
+                aws sts get-caller-identity --no-cli-pager
+  
+                echo "Running Terraform Plan..."
+                export TF_LOG=INFO
+                export TF_LOG_PATH=terraform-plan.log
+                terraform plan -var-file="terraform.tfvars" -out=tfplan
+              EOF
+            '''
           }
         }
       }
@@ -97,12 +105,14 @@ pipeline {
       steps {
         dir("${TF_WORKDIR}") {
           withAWS(credentials: 'aws-credentials-id', region: "${AWS_DEFAULT_REGION}") {
-            sh(script: '''
-              set -euo pipefail
-              export TF_LOG=INFO
-              export TF_LOG_PATH=terraform-apply.log
-              terraform apply tfplan
-            ''', shell: '/bin/bash')
+            sh '''
+              bash <<'EOF'
+                set -euo pipefail
+                export TF_LOG=INFO
+                export TF_LOG_PATH=terraform-apply.log
+                terraform apply tfplan
+              EOF
+            '''
           }
         }
       }
@@ -124,3 +134,4 @@ pipeline {
     }
   }
 }
+
