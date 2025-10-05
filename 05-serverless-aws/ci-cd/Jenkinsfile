@@ -69,11 +69,11 @@ pipeline {
                             export TF_LOG=INFO
                             export AWS_REGION=${AWS_DEFAULT_REGION}
         
-                            timeout 300s terraform plan -var-file="terraform.tfvars" -out=tfplan
+                            timeout 120s terraform plan -var-file="terraform.tfvars" -out=tfplan
                             STATUS=$?
         
                             if [ $STATUS -eq 124 ]; then
-                                echo "❌ Terraform plan timed out after 300s"
+                                echo "❌ Terraform plan timed out after 120s"
                                 exit 1
                             elif [ $STATUS -ne 0 ]; then
                                 echo "❌ Terraform plan failed with exit code $STATUS"
@@ -112,4 +112,5 @@ pipeline {
         }
     }
 }
+
 
