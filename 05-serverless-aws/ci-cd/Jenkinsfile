@@ -4,7 +4,11 @@ pipeline {
     environment {
         AWS_DEFAULT_REGION = "ap-south-1"
         TF_WORKDIR = "05-serverless-aws/terraform"
-        AWS_EC2_METADATA_DISABLED = 'true'
+        BUILD_DIR = "05-serverless-aws"
+    }
+
+    options {
+        timeout(time: 5, unit: 'MINUTES') // prevent pipeline from hanging forever
     }
 
     stages {
@@ -16,9 +20,29 @@ pipeline {
 
         stage('Build Lambda Package') {
             steps {
-                dir('05-serverless-aws') {
-                    sh 'chmod +x build.sh'
-                    sh './build.sh'
+                dir("${BUILD_DIR}") {
+                    sh '''
+                        echo "🏗️ Building Lambda package..."
+                        chmod +x build.sh
+                        ./build.sh
+                    '''
+                    sh '''
+                        if [ ! -f lambda_package.zip ]; then
+                            echo "❌ Lambda package not created!"
+                            exit 1
+                        fi
+                    '''
+                }
+            }
+        }
+
+        stage('Verify Build Paths') {
+            steps {
+                dir("${TF_WORKDIR}") {
+                    sh '''
+                        echo "📂 Verifying paths from Terraform perspective..."
+                        ls -l ../lambda_package.zip
+                    '''
                 }
             }
         }
@@ -37,7 +61,18 @@ pipeline {
             steps {
                 dir("${TF_WORKDIR}") {
                     withAWS(credentials: 'aws-credentials-id', region: "${AWS_DEFAULT_REGION}") {
-                        sh 'TF_LOG=DEBUG timeout 50s terraform plan -var-file="terraform.tfvars" -out=tfplan'
+                        sh '''
+                            echo "📡 Running Terraform Plan..."
+                            TF_LOG=INFO timeout 180s terraform plan -var-file="terraform.tfvars" -out=tfplan
+                            STATUS=$?
+                            if [ $STATUS -eq 124 ]; then
+                                echo "❌ Terraform plan timed out after 180s"
+                                exit 1
+                            elif [ $STATUS -ne 0 ]; then
+                                echo "❌ Terraform plan failed with exit code $STATUS"
+                                exit $STATUS
+                            fi
+                        '''
                     }
                 }
             }
@@ -57,12 +92,14 @@ pipeline {
     post {
         always {
             dir("${TF_WORKDIR}") {
-                sh 'terraform output'
+                sh 'terraform output || true'
             }
         }
+
         failure {
             echo "❌ Build or deploy failed."
         }
+
         success {
             echo "✅ Deployment successful."
         }
