@@ -12,7 +12,7 @@ terraform {
 variable "ci_mode" {
   description = "Enable CI-safe provider config by skipping slow validations"
   type        = bool
-  default     = true
+  default     = false
 }
 
 provider "aws" {
@@ -26,4 +26,5 @@ provider "aws" {
   # Prefer regional STS endpoints to avoid global endpoint latency in CI
   sts_regional_endpoints = "regional"
 }
+
 
