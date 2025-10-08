@@ -2,35 +2,8 @@ pipeline {
   agent any
 
   environment {
-    AWS_DEFAULT_REGION = "ap-south-1"
-    TF_WORKDIR = "05-serverless-aws/terraform"
-    BUILD_DIR = "05-serverless-aws"
-
-    // Non-interactive Terraform in CI
-    TF_INPUT = '0'
-
-    // Disable IMDS probing on non-EC2 agents
-    AWS_EC2_METADATA_DISABLED = 'true'
-
-    // Prefer regional STS to reduce latency during provider init
-    AWS_STS_REGIONAL_ENDPOINTS = 'regional'
-
-    // Provider plugin cache for faster/reliable init
-    TF_PLUGIN_CACHE_DIR = "${WORKSPACE}/.terraform.d/plugin-cache"
-
-    // Pass variables to provider.tf
-    TF_VAR_ci_mode = 'true'
-    TF_VAR_aws_region = 'ap-south-1'
-
-    // Default CLI args
-    TF_CLI_ARGS_init  = "-input=false -no-color"
-    TF_CLI_ARGS_plan  = "-input=false -no-color -lock-timeout=3m"
-    TF_CLI_ARGS_apply = "-input=false -no-color -lock-timeout=3m"
-  }
-
-  options {
-    timeout(time: 3, unit: 'MINUTES')
-    timestamps()
+    AWS_REGION = 'ap-south-1'
+    TF_VAR_aws_region = "${AWS_REGION}"
   }
 
   stages {
@@ -40,82 +13,43 @@ pipeline {
       }
     }
 
-    stage('Build Lambda Package') {
+    stage('Prepare Lambda Package') {
       steps {
-        dir("${TF_WORKDIR}/..") {
-          sh '''#!/usr/bin/env bash
-set -euo pipefail
-echo "Building Lambda package..."
-chmod +x build.sh
-./build.sh
-test -f lambda_package.zip || { echo "Lambda package not created!"; exit 1; }
-'''
+        dir('05-serverless-aws') {
+          sh 'chmod +x build.sh && ./build.sh'
         }
       }
     }
 
-    stage('Verify Build Paths') {
+    stage('Terraform Init') {
       steps {
-        dir("${TF_WORKDIR}") {
-          sh '''#!/usr/bin/env bash
-set -euo pipefail
-echo "Verifying paths from Terraform perspective..."
-ls -l ../lambda_package.zip
-'''
+        dir('05-serverless-aws/terraform') {
+          sh 'terraform init'
         }
       }
     }
 
-    stage('Terraform Init (upgrade)') {
+    stage('Terraform Validate') {
       steps {
-        dir("${TF_WORKDIR}") {
-          withAWS(credentials: 'aws-credentials-id', region: "${AWS_DEFAULT_REGION}") {
-            sh '''#!/usr/bin/env bash
-set -euo pipefail
-mkdir -p "$TF_PLUGIN_CACHE_DIR"
-terraform version
-# Upgrade provider/plugins to pick up fixes and match provider.tf constraints
-terraform init -upgrade -input=false -no-color
-'''
-          }
+        dir('05-serverless-aws/terraform') {
+          sh 'terraform validate'
         }
       }
     }
 
     stage('Terraform Plan') {
-      options { timeout(time: 3, unit: 'MINUTES') }
       steps {
-        dir("${TF_WORKDIR}") {
-          withAWS(credentials: 'aws-credentials-id', region: "${AWS_DEFAULT_REGION}") {
-            sh '''#!/usr/bin/env bash
-set -euo pipefail
-echo "Verifying AWS credentials..."
-aws sts get-caller-identity --no-cli-pager
-
-echo "Running Terraform Plan..."
-export TF_LOG=INFO
-export TF_LOG_PATH=terraform-plan.log
-terraform plan -var-file="terraform.tfvars" -out=tfplan
-'''
-          }
+        dir('05-serverless-aws/terraform') {
+          // Prevent hanging by piping 'yes' or using -input=false
+          sh 'terraform plan -input=false -out=tfplan.out'
         }
       }
     }
 
     stage('Terraform Apply') {
-      when {
-        expression { fileExists("${env.TF_WORKDIR}/tfplan") }
-      }
       steps {
-        dir("${TF_WORKDIR}") {
-          withAWS(credentials: 'aws-credentials-id', region: "${AWS_DEFAULT_REGION}") {
-            sh '''#!/usr/bin/env bash
-set -euo pipefail
-export TF_LOG=INFO
-export TF_LOG_PATH=terraform-apply.log
-terraform apply -input=false tfplan
-'''
-          }
+        dir('05-serverless-aws/terraform') {
+          sh 'terraform apply -input=false tfplan.out'
         }
       }
     }
@@ -123,19 +57,10 @@ terraform apply -input=false tfplan
 
   post {
     always {
-      dir("${TF_WORKDIR}") {
-        sh '''#!/usr/bin/env bash
-set -euo pipefail
-terraform output || true
-'''
-        archiveArtifacts artifacts: 'terraform-*.log, tfplan', allowEmptyArchive: true
+      echo "Cleaning up Terraform files"
+      dir('05-serverless-aws/terraform') {
+        sh 'rm -f tfplan.out'
       }
-    }
-    failure {
-      echo "Build or deploy failed."
-    }
-    success {
-      echo "Deployment successful."
     }
   }
 }
