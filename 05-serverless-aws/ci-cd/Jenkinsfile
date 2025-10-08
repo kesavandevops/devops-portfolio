@@ -4,6 +4,12 @@ pipeline {
   environment {
     AWS_REGION = 'ap-south-1'
     TF_VAR_aws_region = "${AWS_REGION}"
+    TF_IN_AUTOMATION = "true"
+  }
+
+  options {
+    // Timeout the entire pipeline or individual stages to avoid hanging forever
+    timeout(time: 30, unit: 'MINUTES')
   }
 
   stages {
@@ -24,7 +30,10 @@ pipeline {
     stage('Terraform Init') {
       steps {
         dir('05-serverless-aws/terraform') {
-          sh 'terraform init'
+          sh '''
+            # Force non-interactive mode, avoid migrating backend prompts
+            terraform init -input=false -no-color -reconfigure
+          '''
         }
       }
     }
@@ -32,7 +41,10 @@ pipeline {
     stage('Terraform Validate') {
       steps {
         dir('05-serverless-aws/terraform') {
-          sh 'terraform validate'
+          sh '''
+            # Validate; if it fails, pipeline should error (no hang)
+            terraform validate -no-color
+          '''
         }
       }
     }
@@ -40,8 +52,9 @@ pipeline {
     stage('Terraform Plan') {
       steps {
         dir('05-serverless-aws/terraform') {
-          // Prevent hanging by piping 'yes' or using -input=false
-          sh 'terraform plan -input=false -out=tfplan.out'
+          sh '''
+            terraform plan -input=false -no-color -out=tfplan.out
+          '''
         }
       }
     }
@@ -49,7 +62,9 @@ pipeline {
     stage('Terraform Apply') {
       steps {
         dir('05-serverless-aws/terraform') {
-          sh 'terraform apply -input=false tfplan.out'
+          sh '''
+            terraform apply -input=false -no-color tfplan.out
+          '''
         }
       }
     }
@@ -57,9 +72,16 @@ pipeline {
 
   post {
     always {
-      echo "Cleaning up Terraform files"
+      echo "Cleanup tfplan file"
       dir('05-serverless-aws/terraform') {
         sh 'rm -f tfplan.out'
+      }
+    }
+    failure {
+      echo "Pipeline failed. Dumping Terraform logs for diagnosis"
+      dir('05-serverless-aws/terraform') {
+        sh 'ls -la'
+        sh 'cat *.log || true'
       }
     }
   }
