@@ -20,16 +20,27 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: Setup Terraform
-        uses: hashicorp/setup-terraform@v3
-        with:
-          terraform_version: ${{ env.TF_VERSION }}
-
       - name: Configure AWS credentials
         uses: aws-actions/configure-aws-credentials@v4
         with:
           role-to-assume: arn:aws:iam::326052702112:role/GitHubOIDCRole
           aws-region: ${{ env.AWS_REGION }}
+
+      - name: Upload Lambda Package
+        if: github.ref == 'refs/heads/main'
+        working-directory: 05-serverless-aws
+        run: |
+          echo "Packaging Lambda function..."
+          bash build.sh
+          aws lambda update-function-code \
+            --function-name my-lambda-api \
+            --zip-file fileb://lambda_package.zip \
+            --region ${{ env.AWS_REGION }}
+
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: ${{ env.TF_VERSION }}
 
       - name: Initialize Terraform
         working-directory: 05-serverless-aws/terraform
@@ -47,14 +58,3 @@ jobs:
         if: github.ref == 'refs/heads/main'
         working-directory: 05-serverless-aws/terraform
         run: terraform apply -auto-approve -var-file="terraform.tfvars"
-
-      - name: Upload Lambda Package
-        if: github.ref == 'refs/heads/main'
-        working-directory: 05-serverless-aws
-        run: |
-          echo "Packaging Lambda function..."
-          bash build.sh
-          aws lambda update-function-code \
-            --function-name my-lambda-api \
-            --zip-file fileb://lambda_package.zip \
-            --region ${{ env.AWS_REGION }}
