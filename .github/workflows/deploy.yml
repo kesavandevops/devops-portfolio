@@ -32,16 +32,11 @@ jobs:
           role-to-assume: arn:aws:iam::326052702112:role/GitHubOIDCRole
           aws-region: ${{ env.AWS_REGION }}
 
-      - name: Upload Lambda Package
-        if: github.ref == 'refs/heads/main'
+      - name: Build Lambda package
         working-directory: 05-serverless-aws
         run: |
           echo "Packaging Lambda function..."
           bash build.sh
-          aws lambda update-function-code \
-            --function-name my-lambda-api \
-            --zip-file fileb://lambda_package.zip \
-            --region ${{ env.AWS_REGION }}
 
       - name: Setup Terraform
         uses: hashicorp/setup-terraform@v3
