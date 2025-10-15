@@ -34,7 +34,7 @@ jobs:
       - name: Configure AWS credentials (assume role via OIDC)
         uses: aws-actions/configure-aws-credentials@v4
         with:
-          role-to-assume: arn:aws:iam::326052702112:role/GitHubOIDCRole
+          role-to-assume: arn:aws:iam::${{ secrets.AWS_ACCOUNT_ID }}:role/GitHubOIDCRole
           aws-region: ${{ env.AWS_REGION }}
 
       - name: Setup Terraform CLI
@@ -72,7 +72,7 @@ jobs:
           terraform output -json || true
           API_ENDPOINT=$(terraform output -raw api_endpoint 2>/dev/null || true)
           echo "API_ENDPOINT=${API_ENDPOINT}"
-          echo "::set-output name=api_endpoint::${API_ENDPOINT}"
+          echo "api_endpoint=${API_ENDPOINT}" >> $GITHUB_OUTPUT
 
       - name: Quick smoke test (optional, only if endpoint exists)
         if: success() && steps.terraform_outputs.outputs.api_endpoint != ''
