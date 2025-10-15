@@ -20,6 +20,13 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
+      - name: Build Lambda package
+        working-directory: 05-serverless-aws
+        run: |
+          echo "Packaging Lambda function..."
+          chmod +x build.sh || true
+          ./build.sh
+
       - name: Configure AWS credentials
         uses: aws-actions/configure-aws-credentials@v4
         with:
