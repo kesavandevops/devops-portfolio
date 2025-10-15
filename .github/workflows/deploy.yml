@@ -79,18 +79,29 @@ jobs:
         if: success() && steps.terraform_outputs.outputs.api_endpoint != ''
         run: |
           API="${{ steps.terraform_outputs.outputs.api_endpoint }}"
-          echo "Waiting for API to be ready..."
+          echo ""
+          echo "🔄 Waiting for API to be ready..."
           sleep 15
-
-          echo "Creating test task..."
-          curl -sSf -X POST "${API}/task" \
+      
+          echo ""
+          echo "🚀 Creating test task..."
+          CREATE_RESPONSE=$(curl -sSf -X POST "${API}/task" \
             -H "Content-Type: application/json" \
-            -d '{"taskId":"smoke-test","description":"CI Smoke Test"}'
-
-          echo "Retrieving test task..."
-          curl -sSf "${API}/task/smoke-test"
-
-          echo "Deleting test task..."
-          curl -sSf -X DELETE "${API}/task/smoke-test"
-
+            -d '{"taskId":"smoke-test","description":"CI Smoke Test"}')
+          echo "✅ Create response:"
+          echo "$CREATE_RESPONSE" | jq .
+      
+          echo ""
+          echo "📥 Retrieving test task..."
+          GET_RESPONSE=$(curl -sSf "${API}/task/smoke-test")
+          echo "✅ Get response:"
+          echo "$GET_RESPONSE" | jq .
+      
+          echo ""
+          echo "🗑️ Deleting test task..."
+          DELETE_RESPONSE=$(curl -sSf -X DELETE "${API}/task/smoke-test")
+          echo "✅ Delete response:"
+          echo "$DELETE_RESPONSE" | jq .
+      
+          echo ""
           echo "✅ Smoke test passed!"
