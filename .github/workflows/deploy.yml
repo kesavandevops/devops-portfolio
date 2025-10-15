@@ -2,6 +2,10 @@ name: Deploy Serverless API (Terraform + AWS)
 
 on:
   workflow_dispatch:
+  # optional: uncomment to run on pushes to main
+  # push:
+  #   branches:
+  #     - main
 
 jobs:
   deploy:
@@ -20,71 +24,59 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: Configure AWS credentials
-        uses: aws-actions/configure-aws-credentials@v4
-        with:
-          role-to-assume: arn:aws:iam::326052702112:role/GitHubOIDCRole
-          aws-region: ${{ env.AWS_REGION }}
-
       - name: Build Lambda package
         working-directory: 05-serverless-aws
         run: |
           echo "Packaging Lambda function..."
-          bash build.sh
+          chmod +x build.sh || true
+          ./build.sh
 
-      - name: Setup Terraform
-        uses: hashicorp/setup-terraform@v3
-        with:
-          terraform_version: ${{ env.TF_VERSION }}
-
-      - name: Initialize Terraform
-        working-directory: 05-serverless-aws/terraform
-        run: terraform init
-
-      - name: Validate Terraform
-        working-directory: 05-serverless-aws/terraform
-        run: terraform validate
-
-      - name: Plan Terraform
-        working-directory: 05-serverless-aws/terraform
-        run: terraform plan -var-file="terraform.tfvars"
-
-      - name: Apply Terraform
-        if: github.ref == 'refs/heads/main'
-        working-directory: 05-serverless-aws/terraform
-        run: terraform apply -auto-approve -var-file="terraform.tfvars"
-
-  destroy:
-    name: Destroy Serverless API (Terraform + AWS)
-    runs-on: ubuntu-latest
-
-    permissions:
-      id-token: write
-      contents: read
-
-    env:
-      AWS_REGION: ap-south-1
-      TF_VERSION: 1.9.5
-
-    steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
-
-      - name: Configure AWS credentials
+      - name: Configure AWS credentials (assume role via OIDC)
         uses: aws-actions/configure-aws-credentials@v4
         with:
           role-to-assume: arn:aws:iam::326052702112:role/GitHubOIDCRole
           aws-region: ${{ env.AWS_REGION }}
 
-      - name: Setup Terraform
+      - name: Setup Terraform CLI
         uses: hashicorp/setup-terraform@v3
         with:
           terraform_version: ${{ env.TF_VERSION }}
 
-      - name: Initialize Terraform
+      - name: Terraform Init
         working-directory: 05-serverless-aws/terraform
         run: terraform init
 
-      - name: Destroy Terraform Infrastructure
+      - name: Terraform Validate
         working-directory: 05-serverless-aws/terraform
-        run: terraform destroy -auto-approve -var-file="terraform.tfvars"
+        run: terraform validate
+
+      - name: Terraform Plan (create tfplan)
+        working-directory: 05-serverless-aws/terraform
+        run: |
+          terraform plan -var-file="terraform.tfvars" -out=tfplan
+
+      - name: Terraform Show (human-readable plan)
+        working-directory: 05-serverless-aws/terraform
+        run: terraform show -no-color tfplan
+
+      - name: Terraform Apply (only on main or manual runs)
+        if: github.ref == 'refs/heads/main' || github.event_name == 'workflow_dispatch'
+        working-directory: 05-serverless-aws/terraform
+        run: terraform apply -auto-approve tfplan
+
+      - name: Terraform Outputs (show API endpoint)
+        if: success()
+        working-directory: 05-serverless-aws/terraform
+        run: |
+          echo "Terraform outputs:"
+          terraform output -json || true
+          API_ENDPOINT=$(terraform output -raw api_endpoint 2>/dev/null || true)
+          echo "API_ENDPOINT=${API_ENDPOINT}"
+          echo "::set-output name=api_endpoint::${API_ENDPOINT}"
+
+      - name: Quick smoke test (optional, only if endpoint exists)
+        if: success() && steps.terraform_outputs.outputs.api_endpoint != ''
+        run: |
+          API="${{ steps.terraform_outputs.outputs.api_endpoint }}"
+          echo "Testing GET on ${API}/task/nonexistent"
+          curl -sSf "${API}/task/nonexistent" || true
