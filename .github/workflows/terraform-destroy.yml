@@ -1,4 +1,4 @@
-name: Destroy Serverless API Infrastructure (Terraform + AWS)
+name: Destroy Serverless API (Terraform + AWS)
 
 on:
   workflow_dispatch:  # Manual trigger only
