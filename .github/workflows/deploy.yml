@@ -74,9 +74,22 @@ jobs:
           echo "API_ENDPOINT=${API_ENDPOINT}"
           echo "api_endpoint=${API_ENDPOINT}" >> $GITHUB_OUTPUT
 
-      - name: Quick smoke test (optional, only if endpoint exists)
+      - name: Smoke test API (create + get + delete)
         if: success() && steps.terraform_outputs.outputs.api_endpoint != ''
         run: |
           API="${{ steps.terraform_outputs.outputs.api_endpoint }}"
-          echo "Testing GET on ${API}/task/nonexistent"
-          curl -sSf "${API}/task/nonexistent" || true
+          echo "Waiting for API to be ready..."
+          sleep 15
+
+          echo "Creating test task..."
+          curl -sSf -X POST "${API}/task" \
+            -H "Content-Type: application/json" \
+            -d '{"taskId":"smoke-test","description":"CI Smoke Test"}'
+
+          echo "Retrieving test task..."
+          curl -sSf "${API}/task/smoke-test"
+
+          echo "Deleting test task..."
+          curl -sSf -X DELETE "${API}/task/smoke-test"
+
+          echo "✅ Smoke test passed!"
