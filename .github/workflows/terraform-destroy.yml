@@ -2,7 +2,12 @@ name: Destroy Serverless API Infrastructure (Terraform + AWS)
 
 on:
   workflow_dispatch:  # Manual trigger only
-
+    inputs:
+      confirm_destroy:
+        description: "Type DESTROY to confirm deletion of infrastructure"
+        required: true
+        type: string
+        
 jobs:
   destroy:
     name: Terraform Destroy
@@ -17,13 +22,19 @@ jobs:
       TF_VERSION: 1.9.5
 
     steps:
+      - name: Validate destroy confirmation
+        if: ${{ inputs.confirm_destroy != 'DESTROY' }}
+        run: |
+          echo "⚠️ Confirmation failed. You must type DESTROY to proceed."
+          exit 1
+    
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: Build Lambda package
+      - name: Build Lambda package (Required for Destroy)
         working-directory: 05-serverless-aws
         run: |
-          echo "Packaging Lambda function..."
+          echo "Packaging Lambda function... (required for destroy)"
           chmod +x build.sh || true
           ./build.sh
 
