@@ -65,6 +65,7 @@ jobs:
         run: terraform apply -auto-approve tfplan
 
       - name: Terraform Outputs (show API endpoint)
+        id: terraform_outputs
         if: success()
         working-directory: 05-serverless-aws/terraform
         run: |
