@@ -1,11 +1,11 @@
 # Serverless AWS Lambda API (Terraform + CI/CD with GitHub Actions)
 
-**Lambda + API Gateway + DynamoDB**  
-Infrastructure as Code with **Terraform** · CI/CD via **GitHub Actions**
+**🧠 Lambda + 🌐 API Gateway + 💾 DynamoDB**  
+Infrastructure as Code with **⚙️ Terraform** · CI/CD via **🤖 GitHub Actions**
 
 ---
 
-## Overview
+## 🧩 Overview
 
 This project implements a small **Serverless REST API** using:
 
@@ -20,11 +20,11 @@ API surface:
 - `GET /task/{id}` → fetch a task
 - `DELETE /task/{id}` → delete a task
 
-> **Important:** Terraform uses a **local path** to `lambda_package.zip` when creating/updating the Lambda function. The GitHub Actions workflow and local instructions **build the ZIP before running `terraform plan` / `apply`**.
+> **⚠️ Important:** Terraform uses a **local path** to `lambda_package.zip` when creating/updating the Lambda function. The GitHub Actions workflow and local instructions **build the ZIP before running `terraform plan` / `apply`**.
 
 ---
 
-## Sequence Diagram (Full CI/CD + Runtime Flow)
+## 🧭 Sequence Diagram (Full CI/CD + Runtime Flow)
 
 ```mermaid
 sequenceDiagram
@@ -50,7 +50,7 @@ sequenceDiagram
 
 ---
 
-## Tech stack
+## 🧰 Tech stack
 
 - Terraform  
 - AWS: Lambda, API Gateway (HTTP API v2), DynamoDB, IAM, S3 (remote backend)  
@@ -60,7 +60,7 @@ sequenceDiagram
 
 ---
 
-## Repo layout (relevant paths)
+## 📁 Repo layout (relevant paths)
 
 ```
 devops-portfolio/
@@ -87,11 +87,11 @@ devops-portfolio/
     └── terraform-destroy.yml# Safe destroy with typed confirmation (DESTROY)
 ```
 
-> Note: GitHub Actions workflow files are placed under `.github/workflows/` at the repository root (not under `05-serverless-aws/`). The `build.sh` script is under `05-serverless-aws/`.
+> 📌 Note: GitHub Actions workflow files are placed under `.github/workflows/` at the repository root (not under `05-serverless-aws/`). The `build.sh` script is under `05-serverless-aws/`.
 
 ---
 
-## Prerequisites
+## 📋 Prerequisites
 
 - An AWS account with permissions to create: Lambda, API Gateway, DynamoDB, IAM roles, S3 bucket, DynamoDB table for locks.  
 - **Remote backend** (S3 bucket + DynamoDB lock table) **must exist** before running `terraform init`. The project expects you to create these manually (or use a provided bootstrap script if you add one later).  
@@ -100,11 +100,11 @@ devops-portfolio/
 
 ---
 
-## Local workflow — build, plan, apply
+## 🧑‍💻 Local workflow — build, plan, apply
 
 > Make sure `lambda_package.zip` exists before running Terraform.
 
-1. **Build the Lambda package**
+1. **📦 Build the Lambda package**
 
 ```bash
 cd devops-portfolio/05-serverless-aws
@@ -113,7 +113,7 @@ chmod +x build.sh
 # Creates lambda_package.zip at 05-serverless-aws/lambda_package.zip
 ```
 
-2. **Initialize Terraform (first time will configure the remote backend)**
+2. **🔧 Initialize Terraform (first time will configure the remote backend)**
 
 ```bash
 cd terraform
@@ -121,14 +121,14 @@ terraform init
 terraform validate
 ```
 
-3. **Plan & apply**
+3. **📋 Plan & apply**
 
 ```bash
 terraform plan -var-file="terraform.tfvars" -out=tfplan
 terraform apply -auto-approve tfplan
 ```
 
-4. **Get API endpoint**
+4. **🌐 Get API endpoint**
 
 ```bash
 terraform output -raw api_endpoint
@@ -136,7 +136,7 @@ terraform output -raw api_endpoint
 
 ---
 
-## CI/CD with GitHub Actions (deploy)
+## 🚀 CI/CD with GitHub Actions (deploy)
 
 - Workflow: `.github/workflows/deploy.yml`
 - Behavior:
@@ -146,11 +146,11 @@ terraform output -raw api_endpoint
   4. Runs `terraform init` (remote backend), `terraform plan -out=tfplan`, `terraform apply tfplan`.
   5. Prints `api_endpoint` output for easy testing.
 
-> **Important**: The build (packaging) step must run **before** `terraform plan`/`apply` because Lambda resource references the zip file.
+> **⚠️ Important**: The build (packaging) step must run **before** `terraform plan`/`apply` because Lambda resource references the zip file.
 
 ---
 
-## CI/CD: Safe destroy workflow (GitHub Actions)
+## 💣 CI/CD: Safe destroy workflow (GitHub Actions)
 
 - Workflow: `.github/workflows/terraform-destroy.yml`
 - Trigger: `workflow_dispatch` with required input `confirm_destroy`.
@@ -160,7 +160,7 @@ terraform output -raw api_endpoint
 
 ---
 
-## Testing the API (after deploy)
+## 🧪 Testing the API (after deploy)
 
 Retrieve the API endpoint:
 
@@ -189,7 +189,7 @@ Check the DynamoDB table (AWS Console or CLI) to verify items were created.
 
 ---
 
-## Outputs
+## 📤 Outputs
 
 Terraform outputs (example):
 
@@ -199,7 +199,7 @@ Terraform outputs (example):
 
 ---
 
-## Troubleshooting & Tips
+## 🧯 Troubleshooting & Tips
 
 - **`lambda_package.zip not found` during plan** — ensure you ran `./build.sh` and the path in `variables.tf` matches (defaults expect `../lambda_package.zip` relative to `terraform/`).
 - **Backend init errors** — ensure the S3 bucket and DynamoDB lock table exist and the IAM role used by Actions has `s3:GetObject`, `s3:PutObject`, `s3:ListBucket`, and DynamoDB permissions.
@@ -208,9 +208,10 @@ Terraform outputs (example):
 
 ---
 
-## Security & IAM notes
+## 🛡️ Security & IAM notes
 
 - Use **GitHub OIDC** for short-lived credentials in Actions. Create a minimal IAM role that:
   - Allows assume-role by GitHub Actions OIDC provider
   - Grants limited permissions for Terraform operations (S3 access to backend, DynamoDB lock table, Lambda, API Gateway, DynamoDB CRUD, IAM:PassRole for the Lambda execution role)
 - The Lambda execution role gives the function permission to read/write the specific DynamoDB table and to write CloudWatch logs (via `AWSLambdaBasicExecutionRole`).
+
