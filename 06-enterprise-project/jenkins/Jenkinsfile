@@ -17,7 +17,7 @@ pipeline {
 
         stage('Build Docker Image') {
             steps {
-                dir('06-enterprise-devops-workflow/app') {
+                dir('06-enterprise-project/app') {
                     sh 'docker build -t $DOCKER_IMAGE .'
                 }
             }
@@ -55,3 +55,4 @@ pipeline {
         }
     }
 }
+
