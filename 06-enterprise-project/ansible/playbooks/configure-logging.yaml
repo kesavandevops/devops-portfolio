@@ -35,7 +35,7 @@
               spec:
                 containers:
                   - name: fluentd
-                    image: fluent/fluentd-kubernetes-daemonset:v1.17-debian-elasticsearch7
+                    image: fluent/fluentd-kubernetes-daemonset:v1.14.6-debian-splunk-1.0
                     env:
                       - name: SPLUNK_HEC_URL
                         value: "https://splunk-enterprise.logging.svc.cluster.local:8088"
@@ -96,9 +96,11 @@
           spec:
             type: LoadBalancer
             ports:
-              - port: 8000
+              - name: splunk-web
+                port: 8000
                 targetPort: 8000
-              - port: 8088
+              - name: splunk-hec
+                port: 8088
                 targetPort: 8088
             selector:
               app: splunk
