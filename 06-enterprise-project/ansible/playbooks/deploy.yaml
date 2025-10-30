@@ -1,0 +1,33 @@
+---
+- name: Deploy Application to EKS
+  hosts: localhost
+  connection: local
+  vars:
+    image_tag: "{{ lookup('env', 'IMAGE_TAG') }}"
+  tasks:
+    - name: Set Kubernetes context
+      command: aws eks update-kubeconfig --region ap-south-1 --name enterprise-eks-cluster
+
+    - name: Apply namespace
+      kubernetes.core.k8s:
+        state: present
+        definition:
+          apiVersion: v1
+          kind: Namespace
+          metadata:
+            name: enterprise
+
+    - name: Deploy Flask Application
+      kubernetes.core.k8s:
+        state: present
+        definition: "{{ lookup('file', '../../k8s/deployment.yaml.j2') | template }}"
+
+    - name: Deploy Service
+      kubernetes.core.k8s:
+        state: present
+        src: ../../k8s/service.yaml
+
+    - name: Deploy HPA
+      kubernetes.core.k8s:
+        state: present
+        src: ../../k8s/hpa.yaml
