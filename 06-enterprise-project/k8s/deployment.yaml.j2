@@ -21,6 +21,7 @@ spec:
       containers:
         - name: flask-app
           image: 326052702112.dkr.ecr.ap-south-1.amazonaws.com/enterprise-devops-app:{{ image_tag }}
+          imagePullPolicy: Always
           ports:
             - containerPort: 5000
           readinessProbe:
@@ -35,6 +36,3 @@ spec:
               memory: "128Mi"
       imagePullSecrets:
         - name: ecr-secret
-      imagePullPolicy: Always
-      
-
