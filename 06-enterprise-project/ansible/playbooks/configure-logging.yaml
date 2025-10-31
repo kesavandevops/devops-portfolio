@@ -35,7 +35,7 @@
               spec:
                 containers:
                   - name: fluentd
-                    image: fluent/fluentd-kubernetes-daemonset:v1.14.6-debian-splunk-1.0
+                    image: fluent/fluentd-kubernetes-daemonset:debian-splunkhec
                     env:
                       - name: SPLUNK_HEC_URL
                         value: "https://splunk-enterprise.logging.svc.cluster.local:8088"
