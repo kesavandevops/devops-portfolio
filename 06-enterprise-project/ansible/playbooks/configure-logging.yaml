@@ -38,7 +38,7 @@
                     image: fluent/fluentd-kubernetes-daemonset:debian-splunkhec
                     env:
                       - name: SPLUNK_HEC_URL
-                        value: "https://splunk-enterprise.logging.svc.cluster.local:8088"
+                        value: "http://splunk-enterprise.logging.svc.cluster.local:8088"
                       - name: SPLUNK_HEC_TOKEN
                         value: "splunk-12345-token"
                     resources:
