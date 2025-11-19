@@ -82,6 +82,28 @@
             selector:
               app: prometheus
 
+    - name: Grafana Datasource ConfigMap
+      kubernetes.core.k8s:
+        state: present
+        definition:
+          apiVersion: v1
+          kind: ConfigMap
+          metadata:
+            name: grafana-datasources
+            namespace: monitoring
+            labels:
+              grafana_datasource: "1"
+          data:
+            prometheus-datasource.yaml: |
+              apiVersion: 1
+              datasources:
+                - name: Prometheus
+                  type: prometheus
+                  access: proxy
+                  url: http://prometheus.monitoring.svc.cluster.local:9090
+                  isDefault: true
+                  editable: false
+
     - name: Deploy Grafana
       kubernetes.core.k8s:
         state: present
@@ -106,6 +128,13 @@
                     image: grafana/grafana:10.4.0
                     ports:
                       - containerPort: 3000
+                    volumeMounts:
+                      - name: grafana-datasources
+                        mountPath: /etc/grafana/provisioning/datasources
+                volumes:
+                  - name: grafana-datasources
+                    configMap:
+                      name: grafana-datasources
 
     - name: Grafana Service
       kubernetes.core.k8s:
@@ -123,4 +152,3 @@
                 targetPort: 3000
             selector:
               app: grafana
-
