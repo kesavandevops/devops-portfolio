@@ -47,7 +47,7 @@ pipeline {
 
         stage('Deploy Application') {
             steps {
-                dir('06-enterprise-devops-workflow/ansible') {
+                dir('06-enterprise-project/ansible') {
                     sh 'ansible-playbook -i inventory/hosts.ini playbooks/deploy.yaml'
                 }
             }
@@ -55,7 +55,7 @@ pipeline {
         
         stage('Configure Logging') {
             steps {
-                dir('06-enterprise-devops-workflow/ansible') {
+                dir('06-enterprise-project/ansible') {
                     sh 'ansible-playbook -i inventory/hosts.ini playbooks/configure-logging.yaml'
                 }
             }
@@ -63,7 +63,7 @@ pipeline {
         
         stage('Configure Monitoring') {
             steps {
-                dir('06-enterprise-devops-workflow/ansible') {
+                dir('06-enterprise-project/ansible') {
                     sh 'ansible-playbook -i inventory/hosts.ini playbooks/configure-monitoring.yaml'
                 }
             }
@@ -79,5 +79,3 @@ pipeline {
         }
     }
 }
-
-
