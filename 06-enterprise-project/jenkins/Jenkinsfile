@@ -48,7 +48,9 @@ pipeline {
         stage('Deploy Application') {
             steps {
                 dir('06-enterprise-project/ansible') {
-                    sh 'ansible-playbook -i inventory/hosts.ini playbooks/deploy.yaml'
+                    withAWS(credentials: 'aws_creds', region: "${AWS_REGION}") {
+                        sh 'ansible-playbook -i inventory/hosts.ini playbooks/deploy.yaml'
+                    }
                 }
             }
         }
@@ -56,7 +58,9 @@ pipeline {
         stage('Configure Logging') {
             steps {
                 dir('06-enterprise-project/ansible') {
-                    sh 'ansible-playbook -i inventory/hosts.ini playbooks/configure-logging.yaml'
+                    withAWS(credentials: 'aws_creds', region: "${AWS_REGION}") {
+                        sh 'ansible-playbook -i inventory/hosts.ini playbooks/configure-logging.yaml'
+                    }
                 }
             }
         }
@@ -64,7 +68,9 @@ pipeline {
         stage('Configure Monitoring') {
             steps {
                 dir('06-enterprise-project/ansible') {
-                    sh 'ansible-playbook -i inventory/hosts.ini playbooks/configure-monitoring.yaml'
+                    withAWS(credentials: 'aws_creds', region: "${AWS_REGION}") {
+                        sh 'ansible-playbook -i inventory/hosts.ini playbooks/configure-monitoring.yaml'
+                    }
                 }
             }
         }
