@@ -3,9 +3,6 @@
   hosts: localhost
   connection: local
   tasks:
-    - name: Set Kubernetes context
-      command: aws eks update-kubeconfig --region ap-south-1 --name enterprise-eks-cluster
-
     - name: Create logging namespace
       kubernetes.core.k8s:
         state: present
