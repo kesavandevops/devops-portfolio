@@ -45,43 +45,12 @@ pipeline {
             }
         }
 
-        stage('Deploy Application') {
+        stage('Set Kubernetes Context') {
             steps {
-                dir('06-enterprise-project/ansible') {
-                    withAWS(credentials: 'aws_creds', region: "${AWS_REGION}") {
-                        sh 'ansible-playbook -i inventory/hosts.ini playbooks/deploy.yaml'
-                    }
+                withAWS(credentials: 'aws_creds', region: "${AWS_REGION}") {
+                    sh 'aws eks update-kubeconfig --name enterprise-eks-cluster --region ${AWS_REGION}'
                 }
             }
-        }
-        
-        stage('Configure Logging') {
-            steps {
-                dir('06-enterprise-project/ansible') {
-                    withAWS(credentials: 'aws_creds', region: "${AWS_REGION}") {
-                        sh 'ansible-playbook -i inventory/hosts.ini playbooks/configure-logging.yaml'
-                    }
-                }
-            }
-        }
-        
-        stage('Configure Monitoring') {
-            steps {
-                dir('06-enterprise-project/ansible') {
-                    withAWS(credentials: 'aws_creds', region: "${AWS_REGION}") {
-                        sh 'ansible-playbook -i inventory/hosts.ini playbooks/configure-monitoring.yaml'
-                    }
-                }
-            }
-        }
-    }
-
-    post {
-        success {
-            slackSend(channel: '#devops-alerts', message: "✅ Deployment succeeded! Image: $DOCKER_IMAGE")
-        }
-        failure {
-            slackSend(channel: '#devops-alerts', message: "❌ Deployment failed! Check Jenkins logs.")
         }
     }
 }
