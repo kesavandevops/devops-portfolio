@@ -52,5 +52,38 @@ pipeline {
                 }
             }
         }
+
+        stage('Deploy Application') {
+            steps {
+                dir('06-enterprise-project/ansible') {
+                    sh 'ansible-playbook -i inventory/hosts.ini playbooks/deploy.yaml'
+                }
+            }
+        }
+        
+        stage('Configure Logging') {
+            steps {
+                dir('06-enterprise-project/ansible') {
+                    sh 'ansible-playbook -i inventory/hosts.ini playbooks/configure-logging.yaml'
+                }
+            }
+        }
+        
+        stage('Configure Monitoring') {
+            steps {
+                dir('06-enterprise-project/ansible') {
+                    sh 'ansible-playbook -i inventory/hosts.ini playbooks/configure-monitoring.yaml'
+                }
+            }
+        }
+    }
+
+    post {
+        success {
+            slackSend(channel: '#devops-alerts', message: "✅ Deployment succeeded! Image: $DOCKER_IMAGE")
+        }
+        failure {
+            slackSend(channel: '#devops-alerts', message: "❌ Deployment failed! Check Jenkins logs.")
+        }
     }
 }
