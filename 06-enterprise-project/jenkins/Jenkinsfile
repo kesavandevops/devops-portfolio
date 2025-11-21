@@ -88,17 +88,23 @@ pipeline {
             steps {
                 withAWS(credentials: 'aws_creds', region: "${AWS_REGION}") {
                     dir('06-enterprise-project/ansible') {
-                        sh 'ansible-playbook -i inventory/hosts.ini playbooks/configure-logging.yaml'
+                        sh '''
+                        ansible-playbook -i inventory/hosts.ini playbooks/configure-logging.yaml \
+                          -e "kubeconfig=$K8S_AUTH_KUBECONFIG"
+                        '''
                     }
                 }
             }
         }
-
+        
         stage('Configure Monitoring') {
             steps {
                 withAWS(credentials: 'aws_creds', region: "${AWS_REGION}") {
                     dir('06-enterprise-project/ansible') {
-                        sh 'ansible-playbook -i inventory/hosts.ini playbooks/configure-monitoring.yaml'
+                        sh '''
+                        ansible-playbook -i inventory/hosts.ini playbooks/configure-monitoring.yaml \
+                          -e "kubeconfig=$K8S_AUTH_KUBECONFIG"
+                        '''
                     }
                 }
             }
