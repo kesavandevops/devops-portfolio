@@ -4,6 +4,7 @@
   connection: local
   vars:
     image_tag: "{{ lookup('env', 'IMAGE_TAG') }}"
+    aws_account_id: "{{ lookup('env', 'AWS_ACCOUNT_ID') }}"
   tasks:
     # - name: Apply namespace
     #   kubernetes.core.k8s:
@@ -28,6 +29,7 @@
       kubernetes.core.k8s:
         state: present
         src: ../../k8s/hpa.yaml
+
 
 
 
