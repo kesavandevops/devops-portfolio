@@ -6,11 +6,9 @@ pipeline {
         ECR_REPO = 'enterprise-devops-app'
         IMAGE_TAG = "${env.BUILD_NUMBER}"
         DOCKER_IMAGE = "326052702112.dkr.ecr.${AWS_REGION}.amazonaws.com/${ECR_REPO}:${IMAGE_TAG}"
-        K8S_AUTH_KUBECONFIG = "${WORKSPACE}/.kube/config"
     }
 
     stages {
-
         stage('Checkout Code') {
             steps {
                 git branch: 'main', url: 'https://github.com/kesavandevops/devops-portfolio.git'
@@ -50,34 +48,31 @@ pipeline {
         stage('Set Kubernetes Context') {
             steps {
                 withAWS(credentials: 'aws_creds', region: "${AWS_REGION}") {
-
-                    // Create kubeconfig inside workspace so ansible can see it
-                    sh '''
-                    mkdir -p $WORKSPACE/.kube
-
-                    aws eks update-kubeconfig \
-                      --name enterprise-eks-cluster \
-                      --region ${AWS_REGION} \
-                      --kubeconfig $WORKSPACE/.kube/config
-                    '''
-
-                    sh 'kubectl get ns'   // validation
+                    sh 'aws eks update-kubeconfig --name enterprise-eks-cluster --region ${AWS_REGION}'
                 }
             }
         }
 
-        stage('Deploy Application (Ansible)') {
+        stage('Deploy Application') {
             steps {
-                withAWS(credentials: 'aws_creds', region: "${AWS_REGION}") {
-
-                    dir('06-enterprise-project/ansible') {
-                        sh '''
-                        echo "Using kubeconfig: $K8S_AUTH_KUBECONFIG"
-
-                        ansible-playbook -i inventory/hosts.ini playbooks/deploy.yaml \
-                          -e "kubeconfig=$K8S_AUTH_KUBECONFIG -vvv"
-                        '''
-                    }
+                dir('06-enterprise-project/ansible') {
+                    sh 'ansible-playbook -i inventory/hosts.ini playbooks/deploy.yaml'
+                }
+            }
+        }
+        
+        stage('Configure Logging') {
+            steps {
+                dir('06-enterprise-project/ansible') {
+                    sh 'ansible-playbook -i inventory/hosts.ini playbooks/configure-logging.yaml'
+                }
+            }
+        }
+        
+        stage('Configure Monitoring') {
+            steps {
+                dir('06-enterprise-project/ansible') {
+                    sh 'ansible-playbook -i inventory/hosts.ini playbooks/configure-monitoring.yaml'
                 }
             }
         }
