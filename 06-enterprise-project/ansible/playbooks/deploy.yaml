@@ -5,14 +5,14 @@
   vars:
     image_tag: "{{ lookup('env', 'IMAGE_TAG') }}"
   tasks:
-    - name: Apply namespace
-      kubernetes.core.k8s:
-        state: present
-        definition:
-          apiVersion: v1
-          kind: Namespace
-          metadata:
-            name: enterprise
+    # - name: Apply namespace
+    #   kubernetes.core.k8s:
+    #     state: present
+    #     definition:
+    #       apiVersion: v1
+    #       kind: Namespace
+    #       metadata:
+    #         name: enterprise
 
     - name: Deploy Flask Application
       kubernetes.core.k8s:
@@ -28,5 +28,6 @@
       kubernetes.core.k8s:
         state: present
         src: ../../k8s/hpa.yaml
+
 
 
