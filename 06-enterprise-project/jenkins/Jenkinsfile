@@ -112,14 +112,21 @@ pipeline {
         }
     }
 
+//     post {
+//         success {
+//             slackSend(channel: '#devops-alerts', message: "✅ Deployment succeeded! Image: $DOCKER_IMAGE")
+//         }
+//         failure {
+//             slackSend(channel: '#devops-alerts', message: "❌ Deployment failed! Check Jenkins logs.")
+//         }
+//     }
+// }
+
     post {
-        success {
-            slackSend(channel: '#devops-alerts', message: "✅ Deployment succeeded! Image: $DOCKER_IMAGE")
-        }
-        failure {
-            slackSend(channel: '#devops-alerts', message: "❌ Deployment failed! Check Jenkins logs.")
-        }
+    success {
+        slackNotify("✅ Deployment succeeded! Image: ${DOCKER_IMAGE}", "good")
+    }
+    failure {
+        slackNotify("❌ Deployment failed! Check Jenkins logs.", "danger")
     }
 }
-
-
