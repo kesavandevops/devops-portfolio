@@ -196,7 +196,6 @@ The playbooks assume:
 
     * Web UI: Port `8000`
     * HEC: Port `8088`
-    * Receiver (UF): Port `9997`
 
 * Prometheus:
 
