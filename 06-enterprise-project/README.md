@@ -1,4 +1,4 @@
-# 06 – Enterprise DevOps Project Workflow (End-to-End)
+# Project 06 – Enterprise DevOps Project Workflow (End-to-End)
 
 **Code → GitHub → Jenkins → Trivy → Docker → ECR → EKS → Ansible → Prometheus/Grafana → Splunk → Slack → HPA**
 
