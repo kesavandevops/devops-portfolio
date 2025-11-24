@@ -1,4 +1,4 @@
-# 06 – Enterprise DevOps Workflow (End-to-End)
+# 06 – Enterprise DevOps Project Workflow (End-to-End)
 
 **Code → GitHub → Jenkins → Trivy → Docker → ECR → EKS → Ansible → Prometheus/Grafana → Splunk → Slack → HPA**
 
@@ -147,7 +147,29 @@ aws ecr create-repository \
 
 ---
 
-### 3. Jenkins Server
+### 3. **Namespace & ECR Docker Registry Secret (Required)**
+
+The application requires access to private ECR images.
+Create the `enterprise` namespace and the `ecr-secret` pull secret:
+
+```bash
+# Create namespace
+kubectl create namespace enterprise
+
+# Create ECR docker-registry secret
+aws ecr get-login-password --region ap-south-1 | \
+kubectl create secret docker-registry ecr-secret \
+  --docker-server=326052702112.dkr.ecr.ap-south-1.amazonaws.com \
+  --docker-username=AWS \
+  --docker-password=$(aws ecr get-login-password --region ap-south-1) \
+  -n enterprise
+```
+
+This secret must exist **before** any Kubernetes Deployment that pulls images from ECR.
+
+---
+
+### 4. Jenkins Server
 
 On the Jenkins agent (or master if building there), you must have:
 
@@ -171,7 +193,7 @@ Plugins typically used:
 
 ---
 
-### 4. Python / Ansible Dependencies
+### 5. Python / Ansible Dependencies
 
 On the Jenkins agent and/or local where you run Ansible:
 
@@ -184,7 +206,7 @@ Ensure `K8S_AUTH_KUBECONFIG` support via environment variable is available for `
 
 ---
 
-### 5. Splunk & Monitoring Defaults
+### 6. Splunk & Monitoring Defaults
 
 The playbooks assume:
 
@@ -259,8 +281,8 @@ Your `jenkins/Jenkinsfile` roughly performs:
 
      * `logging` namespace
      * Splunk Enterprise Deployment + Service
-     * Splunk Universal Forwarder DaemonSet
-     * ConfigMaps/Secrets for Splunk and UF
+     * Fluent Bit Forwarder DaemonSet
+     * ConfigMaps/Secrets for Splunk and Fluent Bit
 
 9. **Configure Monitoring (Ansible)**
 
@@ -348,7 +370,7 @@ kubectl get svc -n monitoring
 
   Open: `http://localhost:3000/`
 
-  * Add Prometheus datasource at `http://prometheus:9090`
+  * Prometheus datasource is already preconfigured via ConfigMap
   * Import dashboards for app & system metrics (if you have JSONs from Project 03)
 
 ---
@@ -438,7 +460,7 @@ aws ecr batch-delete-image \
 
 ---
 
-## 🎯 What This Project Demonstrates to Interviewers
+## 🎯 What This Project Demonstrates
 
 * Real-world CI/CD using **Jenkins Pipelines**
 * Security-first approach with **Trivy** image scanning
@@ -446,15 +468,3 @@ aws ecr batch-delete-image \
 * **Observability**: metrics (Prometheus/Grafana) + logs (Splunk)
 * **Alerting & ChatOps** with Slack
 * **Scalability & Resilience** with Kubernetes HPA
-
-This project is a strong “capstone” in your portfolio that shows you can design and run an **end-to-end production-grade DevOps workflow**.
-
-```
-
----
-
-If you want, next I can:
-
-- Add a **short demo script** (`demo-runbook.md` or `.sh`) that you can literally follow live in interviews:  
-  *“Step 1: trigger Jenkins, Step 2: show EKS pods, Step 3: show Grafana, Step 4: show Splunk logs, Step 5: show HPA scaling.”*
-```
