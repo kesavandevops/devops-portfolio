@@ -1,4 +1,4 @@
-# Serverless AWS Lambda API (Terraform + CI/CD with GitHub Actions)
+# Project 05 - Serverless AWS Lambda API (Terraform + CI/CD with GitHub Actions)
 
 **🧠 Lambda + 🌐 API Gateway + 💾 DynamoDB**  
 Infrastructure as Code with **⚙️ Terraform** · CI/CD via **🤖 GitHub Actions**
@@ -214,4 +214,5 @@ Terraform outputs (example):
   - Allows assume-role by GitHub Actions OIDC provider
   - Grants limited permissions for Terraform operations (S3 access to backend, DynamoDB lock table, Lambda, API Gateway, DynamoDB CRUD, IAM:PassRole for the Lambda execution role)
 - The Lambda execution role gives the function permission to read/write the specific DynamoDB table and to write CloudWatch logs (via `AWSLambdaBasicExecutionRole`).
+
 
