@@ -222,10 +222,10 @@ You can also delete the cluster via `aws eks delete-cluster --name devops-cluste
 
 ---
 
-## 💡 Notes & Best Practices
+## 💡 Key Takeaways
 
-* Use **readinessProbe** in each deployment so only healthy pods receive traffic.
-* Use **livenessProbe** to restart crashed pods.
-* Keep Jenkins credentials secure and use IAM roles where possible (attach IAM role to EC2 / use IRSA in production).
-* For production workflows, consider introducing automated smoke tests between Canary steps to automatically progress or rollback.
-
+* Automated Flask app CI/CD with **Jenkins & Docker**, from build to Kubernetes deployment.
+* Implemented **Blue-Green & Canary deployments** for zero-downtime, safe releases.
+* Validated traffic distribution and app behavior with automated **canary testing & monitoring**.
+* Managed **AWS EKS clusters** with dynamic scaling, rollout control, and cleanup.
+* Applied **DevOps best practices**: readiness/liveness probes, secure credentials, and reliable stepwise rollouts.
