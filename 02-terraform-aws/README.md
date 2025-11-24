@@ -1,4 +1,4 @@
-# Project 02 - Infrastructure as Code with Terraform + AWS
+# Project 02 – Infrastructure as Code with Terraform + AWS
 
 This project provisions a **complete cloud infrastructure** on AWS using **Terraform**.
 It demonstrates how to manage **compute, storage, security, and database** resources as code, making it reusable, version-controlled, and automated.
