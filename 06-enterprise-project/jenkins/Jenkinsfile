@@ -20,97 +20,97 @@ pipeline {
             }
         }
 
-    //     stage('Build Docker Image') {
-    //         steps {
-    //             dir('06-enterprise-project/app') {
-    //                 sh 'docker build -t $DOCKER_IMAGE .'
-    //             }
-    //         }
-    //     }
+        // stage('Build Docker Image') {
+        //     steps {
+        //         dir('06-enterprise-project/app') {
+        //             sh 'docker build -t $DOCKER_IMAGE .'
+        //         }
+        //     }
+        // }
 
-    //     stage('Scan Docker Image with Trivy') {
-    //         steps {
-    //             sh "trivy image --severity HIGH,CRITICAL --exit-code 1 $DOCKER_IMAGE"
-    //         }
-    //     }
+        // stage('Scan Docker Image with Trivy') {
+        //     steps {
+        //         sh "trivy image --severity HIGH,CRITICAL --exit-code 1 $DOCKER_IMAGE"
+        //     }
+        // }
 
-    //     stage('Login to AWS ECR') {
-    //         steps {
-    //             withAWS(credentials: 'aws_creds', region: "${AWS_REGION}") {
-    //                 sh '''
-    //                 aws ecr get-login-password --region $AWS_REGION | docker login --username AWS --password-stdin $AWS_ACCOUNT_ID.dkr.ecr.$AWS_REGION.amazonaws.com
-    //                 '''
-    //             }
-    //         }
-    //     }
+        // stage('Login to AWS ECR') {
+        //     steps {
+        //         withAWS(credentials: 'aws_creds', region: "${AWS_REGION}") {
+        //             sh '''
+        //             aws ecr get-login-password --region $AWS_REGION | docker login --username AWS --password-stdin $AWS_ACCOUNT_ID.dkr.ecr.$AWS_REGION.amazonaws.com
+        //             '''
+        //         }
+        //     }
+        // }
 
-    //     stage('Push Docker Image') {
-    //         steps {
-    //             sh 'docker push $DOCKER_IMAGE'
-    //         }
-    //     }
+        // stage('Push Docker Image') {
+        //     steps {
+        //         sh 'docker push $DOCKER_IMAGE'
+        //     }
+        // }
 
-    //     stage('Set Kubernetes Context') {
-    //         steps {
-    //             withAWS(credentials: 'aws_creds', region: "${AWS_REGION}") {
+        // stage('Set Kubernetes Context') {
+        //     steps {
+        //         withAWS(credentials: 'aws_creds', region: "${AWS_REGION}") {
 
-    //                 // Create kubeconfig inside workspace so ansible can see it
-    //                 sh '''
-    //                 mkdir -p $WORKSPACE/.kube
+        //             // Create kubeconfig inside workspace so ansible can see it
+        //             sh '''
+        //             mkdir -p $WORKSPACE/.kube
 
-    //                 aws eks update-kubeconfig \
-    //                   --name enterprise-eks-cluster \
-    //                   --region ${AWS_REGION} \
-    //                   --kubeconfig $WORKSPACE/.kube/config
-    //                 '''
+        //             aws eks update-kubeconfig \
+        //               --name enterprise-eks-cluster \
+        //               --region ${AWS_REGION} \
+        //               --kubeconfig $WORKSPACE/.kube/config
+        //             '''
 
-    //                 sh 'kubectl get ns'   // validation
-    //             }
-    //         }
-    //     }
+        //             sh 'kubectl get ns'   // validation
+        //         }
+        //     }
+        // }
 
-    //     stage('Deploy Application (Ansible)') {
-    //         steps {
-    //             withAWS(credentials: 'aws_creds', region: "${AWS_REGION}") {
+        // stage('Deploy Application (Ansible)') {
+        //     steps {
+        //         withAWS(credentials: 'aws_creds', region: "${AWS_REGION}") {
 
-    //                 dir('06-enterprise-project/ansible') {
-    //                     sh '''
-    //                     echo "Using kubeconfig: $K8S_AUTH_KUBECONFIG"
+        //             dir('06-enterprise-project/ansible') {
+        //                 sh '''
+        //                 echo "Using kubeconfig: $K8S_AUTH_KUBECONFIG"
 
-    //                     ansible-playbook -i inventory/hosts.ini playbooks/deploy.yaml \
-    //                       -e "kubeconfig=$K8S_AUTH_KUBECONFIG"
-    //                     '''
-    //                 }
-    //             }
-    //         }
-    //     }
+        //                 ansible-playbook -i inventory/hosts.ini playbooks/deploy.yaml \
+        //                   -e "kubeconfig=$K8S_AUTH_KUBECONFIG"
+        //                 '''
+        //             }
+        //         }
+        //     }
+        // }
 
-    //     stage('Configure Logging') {
-    //         steps {
-    //             withAWS(credentials: 'aws_creds', region: "${AWS_REGION}") {
-    //                 dir('06-enterprise-project/ansible') {
-    //                     sh '''
-    //                     ansible-playbook -i inventory/hosts.ini playbooks/configure-logging.yaml \
-    //                       -e "kubeconfig=$K8S_AUTH_KUBECONFIG"
-    //                     '''
-    //                 }
-    //             }
-    //         }
-    //     }
+        // stage('Configure Logging') {
+        //     steps {
+        //         withAWS(credentials: 'aws_creds', region: "${AWS_REGION}") {
+        //             dir('06-enterprise-project/ansible') {
+        //                 sh '''
+        //                 ansible-playbook -i inventory/hosts.ini playbooks/configure-logging.yaml \
+        //                   -e "kubeconfig=$K8S_AUTH_KUBECONFIG"
+        //                 '''
+        //             }
+        //         }
+        //     }
+        // }
         
-    //     stage('Configure Monitoring') {
-    //         steps {
-    //             withAWS(credentials: 'aws_creds', region: "${AWS_REGION}") {
-    //                 dir('06-enterprise-project/ansible') {
-    //                     sh '''
-    //                     ansible-playbook -i inventory/hosts.ini playbooks/configure-monitoring.yaml \
-    //                       -e "kubeconfig=$K8S_AUTH_KUBECONFIG"
-    //                     '''
-    //                 }
-    //             }
-    //         }
-    //     }
-    // }
+        // stage('Configure Monitoring') {
+        //     steps {
+        //         withAWS(credentials: 'aws_creds', region: "${AWS_REGION}") {
+        //             dir('06-enterprise-project/ansible') {
+        //                 sh '''
+        //                 ansible-playbook -i inventory/hosts.ini playbooks/configure-monitoring.yaml \
+        //                   -e "kubeconfig=$K8S_AUTH_KUBECONFIG"
+        //                 '''
+        //             }
+        //         }
+        //     }
+        // }
+    }
 
     post {
         success {
@@ -121,4 +121,5 @@ pipeline {
         }
     }
 }
+
 
