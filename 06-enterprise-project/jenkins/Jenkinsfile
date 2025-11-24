@@ -123,10 +123,12 @@ pipeline {
 // }
 
     post {
-    success {
-        slackNotify("✅ Deployment succeeded! Image: ${DOCKER_IMAGE}", "good")
-    }
-    failure {
-        slackNotify("❌ Deployment failed! Check Jenkins logs.", "danger")
+        success {
+            slackNotify("✅ Deployment succeeded! Image: ${DOCKER_IMAGE}", "good")
+        }
+        failure {
+            slackNotify("❌ Deployment failed! Check Jenkins logs.", "danger")
+        }
     }
 }
+
