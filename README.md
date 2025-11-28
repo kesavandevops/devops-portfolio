@@ -1,6 +1,6 @@
 # 🚀 DevOps Portfolio
 
-Hi, I'm Kesavan 👋 — a DevOps Engineer in transition from semi-IT to IT with hands-on skills in **AWS, Linux, Jenkins, Ansible, Kubernetes, Docker, Terraform, Python, GitHub, MySQL, Prometheus, Grafana, Nagios, Splunk** and more.  
+Hi, I'm Kesavan 👋 a DevOps Engineer in transition from ITeS to IT with hands-on skills in **AWS, Linux, Jenkins, Ansible, Kubernetes, Docker, Terraform, Python, GitHub, MySQL, Prometheus, Grafana, Nagios, Splunk** and more.  
 
 This repository showcases my **end-to-end DevOps projects** that highlight CI/CD, Infrastructure as Code, cloud automation, monitoring, and enterprise-scale DevOps workflows.
 
